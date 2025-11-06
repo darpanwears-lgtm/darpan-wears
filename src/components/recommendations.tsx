@@ -44,15 +44,15 @@ export function Recommendations() {
 
   if (loading) {
     return (
-        <section className="mt-12 p-6 rounded-lg bg-white/80 dark:bg-black/80">
-            <h2 className="text-2xl font-bold mb-6 font-headline text-black dark:text-white">Recommended for You</h2>
+        <section className="mt-12 p-6 rounded-lg bg-black/50 dark:bg-black/50">
+            <h2 className="text-2xl font-bold mb-6 font-headline text-white dark:text-white">Recommended for You</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                 {[...Array(4)].map((_, i) => (
                     <div key={i} className="flex flex-col space-y-3">
-                        <Skeleton className="h-[250px] w-full rounded-xl" />
+                        <Skeleton className="h-[250px] w-full rounded-xl bg-gray-700" />
                         <div className="space-y-2">
-                            <Skeleton className="h-4 w-[200px]" />
-                            <Skeleton className="h-4 w-[150px]" />
+                            <Skeleton className="h-4 w-[200px] bg-gray-700" />
+                            <Skeleton className="h-4 w-[150px] bg-gray-700" />
                         </div>
                     </div>
                 ))}
@@ -66,8 +66,8 @@ export function Recommendations() {
   }
 
   return (
-    <section className="mt-12 p-6 rounded-lg bg-white/80 dark:bg-black/80">
-      <h2 className="text-2xl font-bold mb-6 font-headline text-black dark:text-white">Recommended for You</h2>
+    <section className="mt-12 p-6 rounded-lg bg-black/50 dark:bg-black/50">
+      <h2 className="text-2xl font-bold mb-6 font-headline text-white dark:text-white">Recommended for You</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
         {recommendedProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
