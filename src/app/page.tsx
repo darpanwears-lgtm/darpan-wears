@@ -21,7 +21,7 @@ export default function Home() {
       className="container mx-auto px-4 py-8"
       style={{
         backgroundImage:
-          "url('https://i.pinimg.com/736x/72/1f/65/721f65d0d3b28ec5f86a3df5d2a4aedd.jpg')",
+          "url('https://i.pinimg.com/736x/31/24/39/3124391dfdc70120e4140a0c4f142012.jpg')",
         backgroundSize: 'cover',
         backgroundRepeat: 'no-repeat',
         backgroundPosition: 'center',

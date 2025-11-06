@@ -14,9 +14,9 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b bg-background">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
-            <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={40} height={40} className="rounded-full" />
+        <div className="container mx-auto flex h-20 items-center justify-between px-4">
+          <Link href="/" className="flex items-center gap-3 font-bold text-2xl font-headline">
+            <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={50} height={50} className="rounded-full" />
             Darpan Wears
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
