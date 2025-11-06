@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
 
 const formSchema = z.object({
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, isAdmin, isAuthLoading } = useAuth();
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -33,8 +35,9 @@ export default function LoginPage() {
     }
   }, [isAdmin, isAuthLoading, router]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    const success = login(values.password);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
+    const success = await login(values.password);
     if (!success) {
       toast({
         variant: 'destructive',
@@ -43,6 +46,7 @@ export default function LoginPage() {
       });
        form.reset();
     }
+    setIsSubmitting(false);
   }
 
   if (isAuthLoading || isAdmin) {
@@ -72,8 +76,9 @@ export default function LoginPage() {
                   <FormMessage />
                 </FormItem>
               )} />
-              <Button type="submit" className="w-full" style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}>
-                Enter
+              <Button type="submit" className="w-full" style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }} disabled={isSubmitting}>
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSubmitting ? 'Verifying...' : 'Enter'}
               </Button>
             </form>
           </Form>
