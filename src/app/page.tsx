@@ -15,7 +15,7 @@ export default function Home() {
         </p>
       </section>
 
-      <section>
+      <section id="all-products">
         <h2 className="text-2xl font-bold mb-6 font-headline">All Products</h2>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {products.map((product: Product) => (
