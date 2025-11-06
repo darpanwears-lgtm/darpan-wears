@@ -1,79 +1,60 @@
 'use client';
 
-import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
-import { useUser, useAuth as useFirebaseAuth } from '@/firebase'; // Using the new firebase hooks
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { useFirestore } from '@/firebase';
-import {
-  initiateEmailSignUp,
-  initiateEmailSignIn,
-} from '@/firebase/non-blocking-login';
-import { signOut } from 'firebase/auth';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 
-interface AuthContextType {
-  user: any | null; // Using 'any' for now, can be replaced with a proper User type from firebase
+interface AdminAuthContextType {
   isAdmin: boolean;
-  isUserLoading: boolean;
-  isAuthenticated: boolean;
-  login: (email: string, password?: string) => void;
+  login: (password: string) => boolean;
   logout: () => void;
-  signup: (email: string, password?: string) => void;
-  makeAdmin: () => void;
+  isAuthLoading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AdminAuthContextType | undefined>(undefined);
+
+const ADMIN_PASSWORD = 'darpan2025';
+const SESSION_STORAGE_KEY = 'darpan-admin-auth';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const { user, isUserLoading } = useUser();
-  const auth = useFirebaseAuth();
-  const firestore = useFirestore();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (user && firestore) {
-        const adminRoleRef = doc(firestore, 'roles_admin', user.uid);
-        const adminDoc = await getDoc(adminRoleRef);
-        setIsAdmin(adminDoc.exists());
-      } else {
-        setIsAdmin(false);
+    try {
+      const storedAuth = sessionStorage.getItem(SESSION_STORAGE_KEY);
+      if (storedAuth === 'true') {
+        setIsAdmin(true);
       }
-    };
-
-    checkAdminStatus();
-  }, [user, firestore]);
-
-  const login = (email: string, password?: string) => {
-    if (auth && password) {
-      initiateEmailSignIn(auth, email, password);
+    } catch (e) {
+      console.error("Session storage is not available.");
     }
-  };
+    setIsAuthLoading(false);
+  }, []);
 
-  const signup = (email: string, password?: string) => {
-    if (auth && password) {
-      initiateEmailSignUp(auth, email, password);
+  const login = (password: string): boolean => {
+    if (password === ADMIN_PASSWORD) {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
+      setIsAdmin(true);
+      router.push('/admin');
+      return true;
     }
+    return false;
   };
 
   const logout = () => {
-    if (auth) {
-      signOut(auth);
+    sessionStorage.removeItem(SESSION_STORAGE_KEY);
+    setIsAdmin(false);
+    if (pathname.startsWith('/admin')) {
+        router.push('/login');
     }
   };
-  
-  const makeAdmin = async () => {
-    if (user && firestore) {
-        const adminRoleRef = doc(firestore, 'roles_admin', user.uid);
-        await setDoc(adminRoleRef, { admin: true });
-        setIsAdmin(true); // Optimistically update admin state
-    }
-  }
 
-
-  const isAuthenticated = !!user && !isUserLoading;
+  const value = { isAdmin, login, logout, isAuthLoading };
 
   return (
-    <AuthContext.Provider value={{ user, isUserLoading, isAuthenticated, isAdmin, login, logout, signup, makeAdmin }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );

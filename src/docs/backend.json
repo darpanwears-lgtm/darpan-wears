@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "Product": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Product",
+      "type": "object",
+      "description": "Represents a clothing item available in the Darpan Wears Mobile Shop.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the product entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the product (e.g., 'Cotton T-shirt')."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the product, including materials and features."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the product image stored in Firebase Storage.",
+          "format": "uri"
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the product in the store's currency."
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the product (e.g., 'Shirts', 'Pants', 'Dresses')."
+        },
+        "availableSizes": {
+          "type": "array",
+          "description": "An array of available sizes for the product.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "stockQuantity": {
+          "type": "number",
+          "description": "The number of items currently in stock."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "imageUrl",
+        "price",
+        "category",
+        "availableSizes",
+        "stockQuantity"
+      ]
+    }
+  },
+  "auth": {
+    "providers": []
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/products/{productId}",
+        "definition": {
+          "entityName": "Product",
+          "schema": {
+            "$ref": "#/backend/entities/Product"
+          },
+          "description": "Stores product information. Accessible for reading by all users (for product browsing).",
+          "params": [
+            {
+              "name": "productId",
+              "description": "The unique identifier for the product."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This design prioritizes security and scalability for the Darpan Wears Mobile Shop. It separates product data from administrative functions, ensuring that product browsing is efficient and secure, while administrative actions require appropriate authorization. Products are stored in a root-level `products` collection, accessible for reading by all users (for browsing). The admin panel functionality, which includes adding, updating, and deleting products, is controlled by a client-side password check, as per the user's request for a simplified admin login."
+  }
+}

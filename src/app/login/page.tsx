@@ -9,51 +9,60 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+
 
 const formSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email.' }),
   password: z.string().min(1, { message: 'Password is required.' }),
 });
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAdmin, isAuthLoading } = useAuth();
+  const { toast } = useToast();
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { password: '' },
   });
-
+  
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/account');
+    if (!isAuthLoading && isAdmin) {
+      router.push('/admin');
     }
-  }, [isAuthenticated, router]);
+  }, [isAdmin, isAuthLoading, router]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    login(values.email, values.password);
+    const success = login(values.password);
+    if (!success) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: 'The password you entered is incorrect.',
+      });
+       form.reset();
+    }
+  }
+
+  if (isAuthLoading || isAdmin) {
+     return (
+      <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
+        <p>Loading...</p>
+      </div>
+    );
   }
 
   return (
     <div className="container mx-auto flex min-h-[calc(100vh-8rem)] items-center justify-center px-4 py-8">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold font-headline">Welcome Back</CardTitle>
-          <CardDescription>Sign in to your Darpan Wears account</CardDescription>
+          <CardTitle className="text-2xl font-bold font-headline">Admin Access</CardTitle>
+          <CardDescription>Enter the password to access the admin panel.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField control={form.control} name="email" render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" placeholder="you@example.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )} />
               <FormField control={form.control} name="password" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Password</FormLabel>
@@ -64,16 +73,10 @@ export default function LoginPage() {
                 </FormItem>
               )} />
               <Button type="submit" className="w-full" style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}>
-                Sign In
+                Enter
               </Button>
             </form>
           </Form>
-          <div className="mt-4 text-center text-sm">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="underline">
-              Sign up
-            </Link>
-          </div>
         </CardContent>
       </Card>
     </div>

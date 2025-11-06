@@ -3,14 +3,11 @@
 import Link from 'next/link';
 import { User, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/lib/auth-context';
 import { FacebookIcon } from './icons/facebook';
 import { WhatsAppIcon } from './icons/whatsapp';
 import Image from 'next/image';
 
 export function Header() {
-  const { isAuthenticated } = useAuth();
-
   return (
     <>
       <header className="w-full border-b bg-background">
@@ -39,10 +36,10 @@ export function Header() {
                   <span className="sr-only">WhatsApp</span>
                 </Button>
               </Link>
-              <Link href={isAuthenticated ? '/account' : '/login'}>
+              <Link href={'/login'}>
                 <Button variant="ghost" size="sm">
                   <User className="h-5 w-5" />
-                  <span className="sr-only">Account</span>
+                  <span className="sr-only">Admin</span>
                 </Button>
               </Link>
             </div>

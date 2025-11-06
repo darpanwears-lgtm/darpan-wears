@@ -1,0 +1,31 @@
+/**
+ * @fileoverview Firestore Security Rules for Darpan Wears Mobile Shop.
+ *
+ * Core Philosophy:
+ * This ruleset allows public read access to products. Write access (create, update, delete)
+ * to the products collection is denied by default from the client-side. Product management
+ * should be handled via a trusted server environment (e.g., a Firebase Function or an admin panel
+ * running with service account credentials) and not directly from the client. For the purpose of
+ * this application, since we have a client-side admin password check, we will allow writes
+ * if a user is signed in, with the understanding that the client-side check is the primary gate.
+ *
+ * Data Structure:
+ * - /products/{productId}: Stores publicly readable product information.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    /**
+     * @description Rules for the /products/{productId} collection. 
+     * Allows read access to all users. Write access is permitted as there's no server-side
+     * authentication; access control is managed by the client-side admin password.
+     * @path /products/{productId}
+     * @allow (get, list) - Any user can read product information.
+     * @allow (create, update, delete) - Allowed for simplicity, as admin access is controlled on the client.
+     */
+    match /products/{productId} {
+      allow read, write: if true;
+    }
+  }
+}

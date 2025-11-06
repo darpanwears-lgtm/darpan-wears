@@ -9,8 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { addDocumentNonBlocking } from '@/firebase/non-blocking-updates';
-import { collection } from 'firebase/firestore';
+import { addDoc, collection } from 'firebase/firestore';
 import { useFirestore, useFirebaseApp } from '@/firebase/provider';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
@@ -74,7 +73,7 @@ export function AdminProductForm() {
         imageUrl: imageUrl,
       };
 
-      await addDocumentNonBlocking(productsCollection, productData);
+      await addDoc(productsCollection, productData);
       
       toast({
         title: 'Product Added',
