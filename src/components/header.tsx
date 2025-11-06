@@ -1,12 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingBag, User, Shirt } from 'lucide-react';
+import { ShoppingBag, User, Shirt, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { useCart } from '@/lib/cart-context';
 import { CartSheet } from './cart-sheet';
 import { useState } from 'react';
+import { FacebookIcon } from './icons/facebook';
+import { WhatsAppIcon } from './icons/whatsapp';
 
 export function Header() {
   const { isAuthenticated } = useAuth();
@@ -32,6 +34,24 @@ export function Header() {
               </Link>
             </nav>
             <div className="flex items-center gap-2">
+              <Link href="https://www.instagram.com/darpan_wears?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer">
+                <Button variant="ghost" size="icon">
+                  <Instagram className="h-5 w-5" />
+                  <span className="sr-only">Instagram</span>
+                </Button>
+              </Link>
+              <Link href="https://www.facebook.com/people/Darpan-Wears/61582792832110/?ref=fb_bidir_ig_profile_ac" target="_blank" rel="noopener noreferrer">
+                <Button variant="ghost" size="icon">
+                  <FacebookIcon className="h-5 w-5" />
+                  <span className="sr-only">Facebook</span>
+                </Button>
+              </Link>
+              <Link href="https://wa.me/9332307996" target="_blank" rel="noopener noreferrer">
+                <Button variant="ghost" size="icon">
+                  <WhatsAppIcon className="h-5 w-5" />
+                  <span className="sr-only">WhatsApp</span>
+                </Button>
+              </Link>
               <Link href={isAuthenticated ? '/account' : '/login'}>
                 <Button variant="ghost" size="icon">
                   <User className="h-5 w-5" />
