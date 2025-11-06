@@ -55,39 +55,54 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     setIsAuthLoading(true);
     try {
-      // First, try to sign in.
-      const userCredential = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-      if (firestore) {
-        const adminRoleRef = doc(firestore, 'roles_admin', userCredential.user.uid);
-        await setDoc(adminRoleRef, { isAdmin: true }, { merge: true });
-      }
+      // Try to sign in with the correct credentials
+      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
     } catch (error: any) {
-      // If user doesn't exist, create it.
-      if (error.code === 'auth/user-not-found') {
+      // If login fails (e.g., user not found or wrong password from a previous setup)
+      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
         try {
-          const userCredential = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-          if (firestore) {
-            const adminRoleRef = doc(firestore, 'roles_admin', userCredential.user.uid);
-            await setDoc(adminRoleRef, { isAdmin: true });
+          // Try to create the user. If it already exists, this will fail.
+          await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
+        } catch (creationError: any) {
+          if (creationError.code !== 'auth/email-already-in-use') {
+            // If it's any error other than 'email-already-in-use', something is wrong.
+            console.error("Admin user creation failed:", creationError);
+            setIsAuthLoading(false);
+            return false;
           }
-        } catch (creationError) {
-          console.error("Admin user creation failed:", creationError);
-          setIsAuthLoading(false);
-          return false;
+          // If email is in use, it implies we just need to sign in, which we already tried.
+          // This can happen if the password on the backend is different.
+          // For this app's logic, we assume the provided ADMIN_PASSWORD is the source of truth.
+          // A more robust solution for a real app would be to update the password, but creating a fresh user is simpler.
+           console.error("Admin login failed, password might be out of sync:", error);
+           setIsAuthLoading(false);
+           return false;
         }
       } else {
-        console.error("Admin login failed:", error);
-        setIsAuthLoading(false);
-        return false;
+         console.error("An unexpected error occurred during login:", error);
+         setIsAuthLoading(false);
+         return false;
       }
     }
+
+    // After successful sign-in or creation, get the current user
+    const currentUser = auth.currentUser;
+    if (currentUser && firestore) {
+        const adminRoleRef = doc(firestore, 'roles_admin', currentUser.uid);
+        // Ensure the admin role document exists
+        await setDoc(adminRoleRef, { isAdmin: true });
+        setIsAdmin(true);
+        router.push('/admin');
+    } else {
+        // This case should ideally not be reached
+        setIsAuthLoading(false);
+        return false;
+    }
     
-    // On success for either path
-    setIsAdmin(true);
     setIsAuthLoading(false);
-    router.push('/admin');
     return true;
   };
+
 
   const logout = () => {
     signOut(auth).then(() => {
