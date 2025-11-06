@@ -15,8 +15,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
-import { Separator } from '@/components/ui/separator';
+import { FilterSheet } from '@/components/filter-sheet';
 
 export default function Home() {
   const firestore = useFirestore();
@@ -30,7 +29,8 @@ export default function Home() {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
-  const [priceRange, setPriceRange] = useState([500]);
+  const [priceRange, setPriceRange] = useState([1000]);
+  const [sortBy, setSortBy] = useState('default');
   
   const categories = useMemo(() => {
     if (!products) return [];
@@ -39,13 +39,14 @@ export default function Home() {
   }, [products]);
 
   const maxPrice = useMemo(() => {
-    if (!products) return 100;
-    return Math.max(...products.map(p => p.price), 100);
+    if (!products) return 1000;
+    return Math.max(...products.map(p => p.price), 1000);
   }, [products]);
 
-  const filteredProducts = useMemo(() => {
+  const filteredAndSortedProducts = useMemo(() => {
     if (!products) return [];
-    return products
+    
+    let filtered = products
       .filter(product => 
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
       )
@@ -55,7 +56,22 @@ export default function Home() {
       .filter(product =>
         product.price <= priceRange[0]
       );
-  }, [products, searchTerm, category, priceRange]);
+    
+    switch (sortBy) {
+        case 'price-asc':
+            filtered.sort((a, b) => a.price - b.price);
+            break;
+        case 'price-desc':
+            filtered.sort((a, b) => b.price - a.price);
+            break;
+        default:
+            // No default sorting or keep original
+            break;
+    }
+
+    return filtered;
+
+  }, [products, searchTerm, category, priceRange, sortBy]);
 
 
   return (
@@ -93,36 +109,34 @@ export default function Home() {
         </section>
 
         <section className="mb-8 p-4 border rounded-lg">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="md:col-span-1">
+             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-1">
                     <Input 
                         placeholder="Search products..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="md:col-span-1">
-                     <Select value={category} onValueChange={setCategory}>
+                <div className="sm:col-span-1">
+                    <Select value={sortBy} onValueChange={setSortBy}>
                         <SelectTrigger>
-                            <SelectValue placeholder="Select a category" />
+                            <SelectValue placeholder="Sort by" />
                         </SelectTrigger>
                         <SelectContent>
-                            {categories.map(cat => (
-                                <SelectItem key={cat} value={cat}>
-                                    {cat === 'all' ? 'All Categories' : cat}
-                                </SelectItem>
-                            ))}
+                            <SelectItem value="default">Default</SelectItem>
+                            <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                            <SelectItem value="price-desc">Price: High to Low</SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
-                 <div className="md:col-span-1 space-y-2">
-                    <label className="text-sm font-medium">Price up to: <span className="font-bold">${priceRange[0]}</span></label>
-                    <Slider 
-                        min={0}
-                        max={maxPrice}
-                        step={1}
-                        value={priceRange}
-                        onValueChange={setPriceRange}
+                <div className="sm:col-span-1">
+                    <FilterSheet 
+                        categories={categories}
+                        category={category}
+                        onCategoryChange={setCategory}
+                        priceRange={priceRange}
+                        onPriceRangeChange={setPriceRange}
+                        maxPrice={maxPrice}
                     />
                 </div>
             </div>
@@ -143,9 +157,9 @@ export default function Home() {
             </div>
           ) : (
             <>
-              {filteredProducts.length > 0 ? (
+              {filteredAndSortedProducts.length > 0 ? (
                  <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
-                  {filteredProducts.map((product: Product) => (
+                  {filteredAndSortedProducts.map((product: Product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
