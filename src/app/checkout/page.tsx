@@ -6,21 +6,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useCart } from '@/lib/cart-context';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Image from 'next/image';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
-  email: z.string().email({ message: 'Please enter a valid email.' }),
   address: z.string().min(5, { message: 'Address is too short.' }),
-  city: z.string().min(2, { message: 'City is required.' }),
-  zip: z.string().min(5, { message: 'ZIP code must be 5 digits.' }).max(5),
-  card: z.string().length(16, { message: 'Card number must be 16 digits.' }),
-  expiry: z.string().regex(/^(0[1-9]|1[0-2])\/\d{2}$/, { message: 'Use MM/YY format.' }),
-  cvc: z.string().length(3, { message: 'CVC must be 3 digits.' }),
+  phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
+  paymentMethod: z.enum(['COD', 'Online'], {
+    required_error: 'You need to select a payment method.',
+  }),
 });
 
 export default function CheckoutPage() {
@@ -29,7 +28,7 @@ export default function CheckoutPage() {
   const total = getCartTotal();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: '', email: '', address: '', city: '', zip: '', card: '', expiry: '', cvc: '' },
+    defaultValues: { name: '', address: '', phone: '' },
   });
 
   if (state.items.length === 0) {
@@ -51,8 +50,9 @@ export default function CheckoutPage() {
 \\n
 *Customer Details:*\\n
 Name: ${values.name}\\n
-Email: ${values.email}\\n
-Address: ${values.address}, ${values.city}, ${values.zip}\\n
+Address: ${values.address}\\n
+Phone: ${values.phone}\\n
+Payment: ${values.paymentMethod}\\n
 \\n
 *Order Items:*\\n
 ${itemsSummary}\\n
@@ -60,7 +60,7 @@ ${itemsSummary}\\n
 *Total Amount: $${total.toFixed(2)}*
     `;
 
-    const whatsappNumber = '9332307996'; // Primary number
+    const whatsappNumber = '7497810643'; // New primary number
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
 
@@ -83,23 +83,50 @@ ${itemsSummary}\\n
         <div>
           <Card>
             <CardHeader>
-              <CardTitle>Shipping & Payment</CardTitle>
+              <CardTitle>Shipping Details & Payment</CardTitle>
             </CardHeader>
             <CardContent>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                   <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                  <FormField control={form.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                  <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField control={form.control} name="city" render={({ field }) => ( <FormItem><FormLabel>City</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="zip" render={({ field }) => ( <FormItem><FormLabel>ZIP Code</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                  </div>
-                  <FormField control={form.control} name="card" render={({ field }) => ( <FormItem><FormLabel>Card Number</FormLabel><FormControl><Input placeholder="XXXX XXXX XXXX XXXX" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField control={form.control} name="expiry" render={({ field }) => ( <FormItem><FormLabel>Expiry (MM/YY)</FormLabel><FormControl><Input placeholder="MM/YY" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                    <FormField control={form.control} name="cvc" render={({ field }) => ( <FormItem><FormLabel>CVC</FormLabel><FormControl><Input placeholder="XXX" {...field} /></FormControl><FormMessage /></FormItem> )} />
-                  </div>
+                  <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Full Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
+                  <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>WhatsApp Number</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                  
+                  <FormField
+                    control={form.control}
+                    name="paymentMethod"
+                    render={({ field }) => (
+                      <FormItem className="space-y-3">
+                        <FormLabel>Payment Method</FormLabel>
+                        <FormControl>
+                          <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex flex-col space-y-1"
+                          >
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="COD" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Cash on Delivery (COD)
+                              </FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-3 space-y-0">
+                              <FormControl>
+                                <RadioGroupItem value="Online" />
+                              </FormControl>
+                              <FormLabel className="font-normal">
+                                Online Payment
+                              </FormLabel>
+                            </FormItem>
+                          </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   <Button type="submit" className="w-full" size="lg" style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}>
                     Place Order - ${total.toFixed(2)}
                   </Button>
