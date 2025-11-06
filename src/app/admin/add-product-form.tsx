@@ -8,9 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { addDoc, collection } from 'firebase/firestore';
-import { useFirestore, useFirebaseApp, FirestorePermissionError, errorEmitter, useUser } from '@/firebase';
+import { useFirestore, FirestorePermissionError, errorEmitter, useUser } from '@/firebase';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
@@ -21,13 +20,12 @@ const productSchema = z.object({
   category: z.string().min(2, { message: 'Category is required.' }),
   availableSizes: z.array(z.object({ value: z.string().min(1, "Size can't be empty") })).optional(),
   stockQuantity: z.coerce.number().min(0, { message: 'Stock can\'t be negative.'}),
-  image: z.any().refine((file) => file?.length == 1, 'Image is required.'),
+  imageUrl: z.string().url({ message: 'Please enter a valid URL.' }),
 });
 
 export function AdminProductForm() {
   const { toast } = useToast();
   const firestore = useFirestore();
-  const firebaseApp = useFirebaseApp();
   const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -40,6 +38,7 @@ export function AdminProductForm() {
       category: '',
       availableSizes: [{value: 'S'}, {value: 'M'}, {value: 'L'}],
       stockQuantity: 1,
+      imageUrl: '',
     },
   });
 
@@ -49,20 +48,13 @@ export function AdminProductForm() {
   });
 
   async function onSubmit(values: z.infer<typeof productSchema>) {
-    if (!firestore || !firebaseApp || !user) {
+    if (!firestore || !user) {
         toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to add a product.'});
         return;
     }
     setIsSubmitting(true);
     
     try {
-      const storage = getStorage(firebaseApp);
-      const imageFile = values.image[0] as File;
-      const storageRef = ref(storage, `products/${Date.now()}_${imageFile.name}`);
-      
-      const uploadResult = await uploadBytes(storageRef, imageFile);
-      const imageUrl = await getDownloadURL(uploadResult.ref);
-
       const productsCollection = collection(firestore, 'products');
       
       const productData = {
@@ -72,7 +64,7 @@ export function AdminProductForm() {
         category: values.category,
         availableSizes: values.availableSizes?.map(s => s.value),
         stockQuantity: values.stockQuantity,
-        imageUrl: imageUrl,
+        imageUrl: values.imageUrl,
       };
 
       addDoc(productsCollection, productData).catch(async (serverError) => {
@@ -150,22 +142,17 @@ export function AdminProductForm() {
             </div>
 
             <FormField
-                control={form.control}
-                name="image"
-                render={({ field: { onChange, value, ...rest } }) => (
+              control={form.control}
+              name="imageUrl"
+              render={({ field }) => (
                 <FormItem>
-                    <FormLabel>Product Image</FormLabel>
-                    <FormControl>
-                        <Input 
-                            type="file" 
-                            accept="image/*"
-                            onChange={(e) => onChange(e.target.files)}
-                            {...rest}
-                        />
-                    </FormControl>
-                    <FormMessage />
+                  <FormLabel>Product Image URL</FormLabel>
+                  <FormControl>
+                    <Input placeholder="https://example.com/image.png" {...field} />
+                  </FormControl>
+                  <FormMessage />
                 </FormItem>
-                )}
+              )}
             />
             
             <Button type="submit" disabled={isSubmitting}>
