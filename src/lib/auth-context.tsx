@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useUser } from '@/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, Auth } from 'firebase/auth';
 import { useAuth as useFirebaseAuth } from '@/firebase';
-import { setDoc, doc } from 'firebase/firestore';
+import { setDoc, doc, getDoc } from 'firebase/firestore';
 import { useFirestore } from '@/firebase/provider';
 
 
@@ -33,17 +33,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const checkAdmin = async () => {
-      if (!isFirebaseUserLoading) {
-        if (user && user.email === ADMIN_EMAIL) {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-        }
-        setIsAuthLoading(false);
+      if (isFirebaseUserLoading) {
+        setIsAuthLoading(true);
+        return;
       }
+      
+      if (user && user.email === ADMIN_EMAIL) {
+         if (firestore) {
+            const adminRoleRef = doc(firestore, 'roles_admin', user.uid);
+            const docSnap = await getDoc(adminRoleRef);
+            if (docSnap.exists()) {
+                setIsAdmin(true);
+            } else {
+                setIsAdmin(false);
+            }
+         } else {
+            setIsAdmin(false);
+         }
+      } else {
+        setIsAdmin(false);
+      }
+      setIsAuthLoading(false);
     };
     checkAdmin();
-  }, [user, isFirebaseUserLoading]);
+  }, [user, isFirebaseUserLoading, firestore]);
 
   const login = (password: string): boolean => {
     if (password !== ADMIN_PASSWORD) {
@@ -53,16 +66,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthLoading(true);
     signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD)
       .then(async (userCredential) => {
-        // This will trigger the useEffect to set isAdmin
         if (firestore) {
            const adminRoleRef = doc(firestore, 'roles_admin', userCredential.user.uid);
-           await setDoc(adminRoleRef, { isAdmin: true });
+           await setDoc(adminRoleRef, { isAdmin: true }, { merge: true });
         }
         router.push('/admin');
       })
       .catch((error) => {
         if (error.code === 'auth/user-not-found') {
-          // Create the admin user if it doesn't exist
           createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD)
             .then(async (userCredential) => {
                if (firestore) {
@@ -73,7 +84,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             })
             .catch((creationError) => {
               console.error("Admin user creation failed:", creationError);
-              setIsAuthLoading(false);
+            }).finally(() => {
+                setIsAuthLoading(false)
             });
         } else {
           console.error("Admin login failed:", error);
@@ -81,7 +93,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       });
 
-    return true; // Indicate that the password was correct and login process started
+    return true;
   };
 
   const logout = () => {

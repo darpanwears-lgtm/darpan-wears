@@ -10,10 +10,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { addDoc, collection } from 'firebase/firestore';
-import { useFirestore, useFirebaseApp, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useFirestore, useFirebaseApp, FirestorePermissionError, errorEmitter, useUser } from '@/firebase';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
 
 const productSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -29,7 +28,7 @@ export function AdminProductForm() {
   const { toast } = useToast();
   const firestore = useFirestore();
   const firebaseApp = useFirebaseApp();
-  const { user } = useAuth();
+  const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof productSchema>>({
