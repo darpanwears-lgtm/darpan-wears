@@ -19,14 +19,6 @@ export default function Home() {
   return (
     <div
       className="container mx-auto px-4 py-8"
-      style={{
-        backgroundImage:
-          "url('https://i.pinimg.com/736x/31/24/39/3124391dfdc70120e4140a0c4f142012.jpg')",
-        backgroundSize: 'cover',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        borderRadius: 'var(--radius)',
-      }}
     >
       <section className="text-center mb-12 rounded-lg p-6 bg-black/50 dark:bg-black/50">
         <h1 className="text-4xl font-bold tracking-tight lg:text-5xl font-headline text-white dark:text-white">

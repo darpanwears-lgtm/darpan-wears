@@ -26,7 +26,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <FirebaseClientProvider>
           <AuthProvider>
-              <div className="flex min-h-screen flex-col">
+              <div className="flex min-h-screen flex-col bg-cover bg-center bg-no-repeat" style={{ backgroundImage: "url('https://i.pinimg.com/736x/31/24/39/3124391dfdc70120e4140a0c4f142012.jpg')"}}>
                 <Header />
                 <main className="flex-grow">{children}</main>
                 <Footer />
