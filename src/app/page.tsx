@@ -27,7 +27,7 @@ export default function Home() {
           flexGrow: 1,
         }}
       >
-        <section className="text-center mb-12 rounded-lg p-6 bg-white/50">
+        <section className="text-center mb-12">
           <h1 className="text-4xl font-bold tracking-tight lg:text-5xl font-headline">
             New Arrivals
           </h1>
@@ -36,10 +36,10 @@ export default function Home() {
           </p>
         </section>
 
-        <section id="all-products" className="rounded-lg p-6 bg-white/50">
+        <section id="all-products">
           <h2 className="text-2xl font-bold mb-6 font-headline">All Products</h2>
           {isLoading ? (
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
               {[...Array(8)].map((_, i) => (
                 <div key={i} className="flex flex-col space-y-3">
                   <Skeleton className="h-[150px] sm:h-[250px] w-full rounded-xl" />
@@ -51,7 +51,7 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
               {products?.map((product: Product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
