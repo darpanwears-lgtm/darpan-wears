@@ -18,7 +18,7 @@ interface AdminAuthContextType {
 const AuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
 const ADMIN_EMAIL = 'admin@darpan.wears';
-const ADMIN_PASSWORD = 'darpan2025';
+const ADMIN_PASSWORD = 'darpan2011';
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { user, isUserLoading: isFirebaseUserLoading } = useUser();
