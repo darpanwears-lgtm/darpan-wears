@@ -10,9 +10,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { addDoc, collection } from 'firebase/firestore';
-import { useFirestore, useFirebaseApp } from '@/firebase/provider';
+import { useFirestore, useFirebaseApp, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
 
 const productSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -28,6 +29,7 @@ export function AdminProductForm() {
   const { toast } = useToast();
   const firestore = useFirestore();
   const firebaseApp = useFirebaseApp();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof productSchema>>({
@@ -48,11 +50,12 @@ export function AdminProductForm() {
   });
 
   async function onSubmit(values: z.infer<typeof productSchema>) {
-    if (!firestore || !firebaseApp) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Firebase not initialized.'});
+    if (!firestore || !firebaseApp || !user) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to add a product.'});
         return;
     }
     setIsSubmitting(true);
+    
     try {
       const storage = getStorage(firebaseApp);
       const imageFile = values.image[0] as File;
@@ -73,7 +76,14 @@ export function AdminProductForm() {
         imageUrl: imageUrl,
       };
 
-      await addDoc(productsCollection, productData);
+      addDoc(productsCollection, productData).catch(async (serverError) => {
+          const permissionError = new FirestorePermissionError({
+              path: productsCollection.path,
+              operation: 'create',
+              requestResourceData: productData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+      });
       
       toast({
         title: 'Product Added',
