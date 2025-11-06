@@ -88,6 +88,9 @@ export function ProductDetails({ product }: ProductDetailsProps) {
 
             <div className="flex items-center gap-4 mt-auto">
                 <DialogClose asChild>
+                    <Button size="lg" variant="outline" className="w-full">Back</Button>
+                </DialogClose>
+                <DialogClose asChild>
                     <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }} className="w-full">Buy Now</Button>
                 </DialogClose>
             </div>
