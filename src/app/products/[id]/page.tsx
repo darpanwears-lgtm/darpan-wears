@@ -2,19 +2,18 @@
 
 import { useEffect, useState } from 'react';
 import * as React from 'react';
-import { notFound } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { products } from '@/lib/products';
 import { Button } from '@/components/ui/button';
-import { useCart } from '@/lib/cart-context';
 import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 export default function ProductPage({ params }: { params: { id: string } }) {
-  const { addItem } = useCart();
   const { toast } = useToast();
+  const router = useRouter();
   const product = products.find((p) => p.id === params.id);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
     product?.sizes ? product.sizes[0] : undefined
@@ -34,17 +33,14 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     notFound();
   }
 
-  const handleAddToCart = () => {
+  const handleBuyNow = () => {
     if (product.sizes && !selectedSize) {
       setError('Please select a size.');
       return;
     }
     setError(null);
-    addItem(product, selectedSize || '');
-    toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
-    });
+    const checkoutUrl = `/checkout?productId=${product.id}&size=${selectedSize || ''}`;
+    router.push(checkoutUrl);
   };
 
   return (
@@ -95,7 +91,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           )}
 
           <div className="flex items-center gap-4">
-            <Button size="lg" onClick={handleAddToCart} style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}>Add to Cart</Button>
+            <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }} className="w-full">Buy Now</Button>
           </div>
         </div>
       </div>

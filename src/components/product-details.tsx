@@ -4,7 +4,6 @@ import { useState } from 'react';
 import * as React from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { useCart } from '@/lib/cart-context';
 import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -18,7 +17,6 @@ interface ProductDetailsProps {
 }
 
 export function ProductDetails({ product }: ProductDetailsProps) {
-  const { addItem, getCartTotal } = useCart();
   const { toast } = useToast();
   const router = useRouter();
 
@@ -32,27 +30,14 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     return null;
   }
 
-  const handleAddToCart = () => {
-    if (product.sizes && !selectedSize) {
-      setError('Please select a size.');
-      return;
-    }
-    setError(null);
-    addItem(product, selectedSize || '');
-    toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart.`,
-    });
-  };
-
   const handleBuyNow = () => {
      if (product.sizes && !selectedSize) {
       setError('Please select a size.');
       return;
     }
     setError(null);
-    addItem(product, selectedSize || '');
-    router.push('/checkout');
+    const checkoutUrl = `/checkout?productId=${product.id}&size=${selectedSize || ''}`;
+    router.push(checkoutUrl);
   }
 
   return (
@@ -102,9 +87,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             )}
 
             <div className="flex items-center gap-4 mt-auto">
-                <Button size="lg" onClick={handleAddToCart}>Add to Cart</Button>
                 <DialogClose asChild>
-                    <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }}>Buy Now</Button>
+                    <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }} className="w-full">Buy Now</Button>
                 </DialogClose>
             </div>
         </div>

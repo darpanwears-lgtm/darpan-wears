@@ -1,20 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { ShoppingBag, User, Shirt, Instagram } from 'lucide-react';
+import { User, Shirt, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
-import { useCart } from '@/lib/cart-context';
-import { CartSheet } from './cart-sheet';
-import { useState } from 'react';
 import { FacebookIcon } from './icons/facebook';
 import { WhatsAppIcon } from './icons/whatsapp';
 
 export function Header() {
   const { isAuthenticated } = useAuth();
-  const { getCartItemCount } = useCart();
-  const [isCartOpen, setCartOpen] = useState(false);
-  const itemCount = getCartItemCount();
 
   return (
     <>
@@ -58,20 +52,10 @@ export function Header() {
                   <span className="sr-only">Account</span>
                 </Button>
               </Link>
-              <Button variant="ghost" size="icon" className="relative" onClick={() => setCartOpen(true)}>
-                <ShoppingBag className="h-5 w-5" />
-                {itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-accent text-accent-foreground text-xs font-bold">
-                    {itemCount}
-                  </span>
-                )}
-                <span className="sr-only">Shopping Cart</span>
-              </Button>
             </div>
           </div>
         </div>
       </header>
-      <CartSheet open={isCartOpen} onOpenChange={setCartOpen} />
     </>
   );
 }

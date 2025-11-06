@@ -1,17 +1,17 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useCart } from '@/lib/cart-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Image from 'next/image';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
+import { products } from '@/lib/products';
+import { Suspense } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -22,28 +22,32 @@ const formSchema = z.object({
   }),
 });
 
-export default function CheckoutPage() {
+function CheckoutForm() {
   const router = useRouter();
-  const { state, getCartTotal, clearCart } = useCart();
-  const total = getCartTotal();
+  const searchParams = useSearchParams();
+  const productId = searchParams.get('productId');
+  const size = searchParams.get('size');
+  
+  const product = products.find(p => p.id === productId);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: '', address: '', phone: '' },
   });
 
-  if (state.items.length === 0) {
+  if (!product) {
     if (typeof window !== 'undefined') {
         router.push('/');
     }
     return null;
   }
+  
+  const total = product.price;
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     const orderId = Math.random().toString(36).substr(2, 9);
     
-    const itemsSummary = state.items.map(item => 
-      `- ${item.name} (Size: ${item.size || 'N/A'}) - Qty: ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`
-    ).join('\\n');
+    const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
 
     const message = `
 *New Order Received!* (ID: ${orderId})\\n
@@ -54,23 +58,20 @@ Address: ${values.address}\\n
 Phone: ${values.phone}\\n
 Payment: ${values.paymentMethod}\\n
 \\n
-*Order Items:*\\n
+*Order Item:*\\n
 ${itemsSummary}\\n
 \\n
 *Total Amount: $${total.toFixed(2)}*
     `;
 
-    const whatsappNumber = '7497810643'; // New primary number
+    const whatsappNumber = '7497810643';
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
 
     // Update purchase history in localStorage
-    const purchasedIds = state.items.map(item => item.id.split('-')[0]); // get original product id
     const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
-    const updatedHistory = [...new Set([...purchasedIds, ...purchaseHistory])];
+    const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
     localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
-
-    clearCart();
     
     // Redirect to WhatsApp
     window.location.href = whatsappUrl;
@@ -139,20 +140,18 @@ ${itemsSummary}\\n
           <h2 className="text-xl font-semibold">Order Summary</h2>
           <Card>
             <CardContent className="p-4 space-y-4">
-              {state.items.map(item => (
-                <div key={item.id} className="flex items-center justify-between">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={item.imageHint}/>
+                    <Image src={product.image} alt={product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={product.imageHint}/>
                     <div>
-                      <p className="font-medium">{item.name}</p>
+                      <p className="font-medium">{product.name}</p>
                        <p className="text-sm text-muted-foreground">
-                        {item.size ? `Size: ${item.size} | ` : ''}Qty: {item.quantity}
+                        {size ? `Size: ${size}` : ''}
                        </p>
                     </div>
                   </div>
-                  <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
+                  <p className="font-medium">${total.toFixed(2)}</p>
                 </div>
-              ))}
               <div className="border-t pt-4 mt-4 flex items-center justify-between font-bold text-lg">
                 <p>Total</p>
                 <p>${total.toFixed(2)}</p>
@@ -163,4 +162,12 @@ ${itemsSummary}\\n
       </div>
     </div>
   );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CheckoutForm />
+    </Suspense>
+  )
 }
