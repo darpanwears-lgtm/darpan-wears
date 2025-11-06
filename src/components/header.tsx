@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { User, Shirt, Instagram } from 'lucide-react';
+import { User, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth-context';
 import { FacebookIcon } from './icons/facebook';
 import { WhatsAppIcon } from './icons/whatsapp';
+import Image from 'next/image';
 
 export function Header() {
   const { isAuthenticated } = useAuth();
@@ -15,7 +16,7 @@ export function Header() {
       <header className="sticky top-0 z-40 w-full border-b bg-background">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
-            <Shirt className="h-6 w-6 text-primary" />
+            <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={40} height={40} className="rounded-full" />
             Darpan Wears
           </Link>
           <div className="flex items-center gap-2 sm:gap-4">
