@@ -108,15 +108,15 @@ export default function Home() {
         </section>
 
         <section className="mb-8 p-4 border rounded-lg">
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-1">
+             <div className="flex items-center gap-4">
+                <div className="flex-grow">
                     <Input 
                         placeholder="Search products..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="sm:col-span-1">
+                <div>
                     <FilterSheet 
                         categories={categories}
                         category={category}

@@ -31,9 +31,9 @@ export function FilterSheet({
   return (
     <Sheet>
         <SheetTrigger asChild>
-            <Button variant="outline" className="w-full justify-start text-left font-normal">
-                <Filter className="mr-2 h-4 w-4" />
-                Filters & Sort
+            <Button variant="outline" size="icon" className="rounded-full flex-shrink-0">
+                <Filter className="h-4 w-4" />
+                <span className="sr-only">Filters & Sort</span>
             </Button>
         </SheetTrigger>
         <SheetContent>
