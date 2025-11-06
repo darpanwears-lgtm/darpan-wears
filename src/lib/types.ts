@@ -8,10 +8,12 @@ export interface Product {
   image: string;
   category: string;
   imageHint: string;
+  sizes?: string[];
 }
 
 export interface CartItem extends Product {
   quantity: number;
+  size: string;
 }
 
 export interface Order {

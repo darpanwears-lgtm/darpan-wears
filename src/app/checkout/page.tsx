@@ -40,15 +40,40 @@ export default function CheckoutPage() {
   }
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log('Order placed:', values);
-    const purchasedIds = state.items.map(item => item.id);
+    const orderId = Math.random().toString(36).substr(2, 9);
+    
+    const itemsSummary = state.items.map(item => 
+      `- ${item.name} (Size: ${item.size || 'N/A'}) - Qty: ${item.quantity} - $${(item.price * item.quantity).toFixed(2)}`
+    ).join('\\n');
+
+    const message = `
+*New Order Received!* (ID: ${orderId})\\n
+\\n
+*Customer Details:*\\n
+Name: ${values.name}\\n
+Email: ${values.email}\\n
+Address: ${values.address}, ${values.city}, ${values.zip}\\n
+\\n
+*Order Items:*\\n
+${itemsSummary}\\n
+\\n
+*Total Amount: $${total.toFixed(2)}*
+    `;
+
+    const whatsappNumber = '9332307996'; // Primary number
+    const encodedMessage = encodeURIComponent(message);
+    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+
+    // Update purchase history in localStorage
+    const purchasedIds = state.items.map(item => item.id.split('-')[0]); // get original product id
     const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
     const updatedHistory = [...new Set([...purchasedIds, ...purchaseHistory])];
     localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
 
     clearCart();
-    const orderId = Math.random().toString(36).substr(2, 9);
-    router.push(`/order/${orderId}`);
+    
+    // Redirect to WhatsApp
+    window.location.href = whatsappUrl;
   }
 
   return (
@@ -93,7 +118,9 @@ export default function CheckoutPage() {
                     <Image src={item.image} alt={item.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={item.imageHint}/>
                     <div>
                       <p className="font-medium">{item.name}</p>
-                      <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
+                       <p className="text-sm text-muted-foreground">
+                        {item.size ? `Size: ${item.size} | ` : ''}Qty: {item.quantity}
+                       </p>
                     </div>
                   </div>
                   <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>

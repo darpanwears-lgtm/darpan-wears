@@ -44,10 +44,11 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
                       <div>
                         <div className="flex justify-between text-base font-medium">
                           <h3>
-                            <Link href={`/products/${item.id}`}>{item.name}</Link>
+                            <Link href={`/products/${item.id.split('-')[0]}`}>{item.name}</Link>
                           </h3>
                           <p className="ml-4">${(item.price * item.quantity).toFixed(2)}</p>
                         </div>
+                        {item.size && <p className="mt-1 text-sm text-muted-foreground">Size: {item.size}</p>}
                       </div>
                       <div className="flex flex-1 items-end justify-between text-sm">
                         <div className="flex items-center gap-2">

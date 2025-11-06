@@ -24,6 +24,7 @@ export const products: Product[] = [
     category: 'T-Shirts',
     image: getImage('t-shirt-1').url,
     imageHint: getImage('t-shirt-1').hint,
+    sizes: ['S', 'M', 'L', 'XL'],
   },
   {
     id: '2',
@@ -33,6 +34,7 @@ export const products: Product[] = [
     category: 'Jeans',
     image: getImage('jeans-1').url,
     imageHint: getImage('jeans-1').hint,
+    sizes: ['30', '32', '34', '36'],
   },
   {
     id: '3',
@@ -42,6 +44,7 @@ export const products: Product[] = [
     category: 'Hoodies',
     image: getImage('hoodie-1').url,
     imageHint: getImage('hoodie-1').hint,
+    sizes: ['S', 'M', 'L', 'XL'],
   },
   {
     id: '4',
@@ -51,6 +54,7 @@ export const products: Product[] = [
     category: 'Shoes',
     image: getImage('sneakers-1').url,
     imageHint: getImage('sneakers-1').hint,
+    sizes: ['8', '9', '10', '11'],
   },
   {
     id: '5',
@@ -60,6 +64,7 @@ export const products: Product[] = [
     category: 'Jackets',
     image: getImage('jacket-1').url,
     imageHint: getImage('jacket-1').hint,
+    sizes: ['S', 'M', 'L'],
   },
   {
     id: '6',
@@ -78,6 +83,7 @@ export const products: Product[] = [
     category: 'Dresses',
     image: getImage('dress-1').url,
     imageHint: getImage('dress-1').hint,
+    sizes: ['XS', 'S', 'M', 'L'],
   },
   {
     id: '8',
