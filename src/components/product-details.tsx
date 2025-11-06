@@ -42,19 +42,19 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   }
 
   return (
-    <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start max-h-[85vh]">
-        <div className="aspect-square w-full overflow-hidden rounded-lg bg-secondary sticky top-0">
-          <Image
-              src={product.imageUrl}
-              alt={product.name}
-              width={600}
-              height={600}
-              className="w-full h-full object-cover"
-              data-ai-hint={product.imageHint}
-          />
-        </div>
-        <ScrollArea className="h-full">
-            <div className="flex flex-col justify-center h-full pr-6">
+    <ScrollArea className="max-h-[85vh]">
+        <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start p-1">
+            <div className="aspect-square w-full overflow-hidden rounded-lg bg-secondary md:sticky top-0">
+              <Image
+                  src={product.imageUrl}
+                  alt={product.name}
+                  width={600}
+                  height={600}
+                  className="w-full h-full object-cover"
+                  data-ai-hint={product.imageHint}
+              />
+            </div>
+            <div className="flex flex-col justify-center h-full">
                 <h1 className="text-3xl lg:text-4xl font-bold mb-2 font-headline">{product.name}</h1>
                 <p className="text-2xl font-semibold mb-4 text-primary">${product.price.toFixed(2)}</p>
                 <p className="text-muted-foreground mb-6">{product.description}</p>
@@ -88,7 +88,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     </div>
                 )}
 
-                <div className="flex items-center gap-4 mt-auto">
+                <div className="flex items-center gap-4 mt-auto pt-4">
                     <DialogClose asChild>
                         <Button size="lg" variant="outline" className="w-full">Back</Button>
                     </DialogClose>
@@ -97,8 +97,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     </DialogClose>
                 </div>
             </div>
-        </ScrollArea>
-    </div>
+        </div>
+    </ScrollArea>
   );
 }
 
