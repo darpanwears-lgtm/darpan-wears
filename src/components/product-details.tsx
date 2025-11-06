@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/lib/types';
-import { DialogClose } from '@/components/ui/dialog';
+import { DialogClose, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 import { ScrollArea } from './ui/scroll-area';
 
@@ -43,6 +43,10 @@ export function ProductDetails({ product }: ProductDetailsProps) {
 
   return (
     <ScrollArea className="max-h-[85vh]">
+        <DialogHeader>
+          <DialogTitle className="sr-only">{product.name}</DialogTitle>
+          <DialogDescription className="sr-only">{product.description}</DialogDescription>
+        </DialogHeader>
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start p-1">
             <div className="w-full md:sticky top-0">
               <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-secondary">
