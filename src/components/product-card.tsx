@@ -24,13 +24,12 @@ export function ProductCard({ product }: ProductCardProps) {
           <DialogTrigger asChild>
             <div className="flex-grow cursor-pointer">
               <CardHeader className="p-0">
-                <div className="aspect-square w-full overflow-hidden">
+                <div className="relative aspect-square w-full overflow-hidden">
                   <Image
                     src={product.imageUrl}
                     alt={product.name}
-                    width={400}
-                    height={400}
-                    className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
+                    fill
+                    className="object-cover transition-transform duration-300 group-hover:scale-105"
                     data-ai-hint={product.imageHint}
                   />
                 </div>
