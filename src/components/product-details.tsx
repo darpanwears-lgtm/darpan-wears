@@ -91,7 +91,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     <Button size="lg" variant="outline" className="w-full">Back</Button>
                 </DialogClose>
                 <DialogClose asChild>
-                    <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }} className="w-full">Buy Now</Button>
+                    <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'yellow', color: 'black', border: '2px solid black' }} className="w-full">Buy Now</Button>
                 </DialogClose>
             </div>
         </div>

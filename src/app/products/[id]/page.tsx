@@ -91,7 +91,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           )}
 
           <div className="flex items-center gap-4">
-            <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }} className="w-full">Buy Now</Button>
+            <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'yellow', color: 'black', border: '2px solid black' }} className="w-full">Buy Now</Button>
           </div>
         </div>
       </div>
