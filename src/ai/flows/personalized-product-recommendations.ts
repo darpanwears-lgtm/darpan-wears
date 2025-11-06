@@ -56,11 +56,10 @@ const personalizedRecommendationsFlow = ai.defineFlow(
   },
   async input => {
     const result = await personalizedRecommendationsPrompt(input);
-    const output = result?.output;
-    if (!output) {
+    if (!result || !result.output) {
       return { recommendations: [] };
     }
-    return output;
+    return result.output;
   }
 );
 
