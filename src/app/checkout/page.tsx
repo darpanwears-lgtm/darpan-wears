@@ -128,7 +128,7 @@ ${itemsSummary}\\n
                     )}
                   />
 
-                  <Button type="submit" className="w-full" size="lg" style={{ backgroundColor: 'yellow', color: 'black', border: '2px solid black' }}>
+                  <Button type="submit" className="w-full" size="lg" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }}>
                     Place Order - ${total.toFixed(2)}
                   </Button>
                 </form>
