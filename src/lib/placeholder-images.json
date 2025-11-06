@@ -1,3 +1,52 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "t-shirt-1",
+      "description": "A stylish black t-shirt.",
+      "imageUrl": "https://images.unsplash.com/photo-1657364890995-1ec4bb3aefcf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxibGFjayUyMHQtc2hpcnR8ZW58MHx8fHwxNzYyNDI0NjQwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black t-shirt"
+    },
+    {
+      "id": "jeans-1",
+      "description": "Classic blue denim jeans.",
+      "imageUrl": "https://images.unsplash.com/photo-1714143136372-ddaf8b606da7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibHVlJTIwamVhbnN8ZW58MHx8fHwxNzYyNDIwMTI3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blue jeans"
+    },
+    {
+      "id": "hoodie-1",
+      "description": "A comfortable gray hoodie.",
+      "imageUrl": "https://images.unsplash.com/photo-1597214271070-e6b9851b4c97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxncmF5JTIwaG9vZGllfGVufDB8fHx8MTc2MjQ0NDg2NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gray hoodie"
+    },
+    {
+      "id": "sneakers-1",
+      "description": "White canvas sneakers.",
+      "imageUrl": "https://images.unsplash.com/photo-1544441892-794166f1e3be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3aGl0ZSUyMHNuZWFrZXJzfGVufDB8fHx8MTc2MjM1NDA5OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "white sneakers"
+    },
+    {
+      "id": "jacket-1",
+      "description": "A modern leather jacket.",
+      "imageUrl": "https://images.unsplash.com/photo-1551028719-00167b16eac5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsZWF0aGVyJTIwamFja2V0fGVufDB8fHx8MTc2MjM5NjEzMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "leather jacket"
+    },
+    {
+      "id": "hat-1",
+      "description": "A cool baseball cap.",
+      "imageUrl": "https://images.unsplash.com/photo-1691256676359-20e5c6d4bc92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxiYXNlYmFsbCUyMGNhcHxlbnwwfHx8fDE3NjIzNTU4NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "baseball cap"
+    },
+    {
+      "id": "dress-1",
+      "description": "An elegant summer dress.",
+      "imageUrl": "https://images.unsplash.com/photo-1609695813802-3c443be34359?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdW1tZXIlMjBkcmVzc3xlbnwwfHx8fDE3NjI0MzQwODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "summer dress"
+    },
+    {
+      "id": "watch-1",
+      "description": "A sleek digital watch.",
+      "imageUrl": "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxkaWdpdGFsJTIwd2F0Y2h8ZW58MHx8fHwxNzYyNDUzNjYzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "digital watch"
+    }
+  ]
 }
