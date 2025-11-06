@@ -35,17 +35,17 @@ export function ProductCard({ product }: ProductCardProps) {
                   />
                 </div>
               </CardHeader>
-              <CardContent className="p-4 flex-grow">
-                <CardTitle className="text-base font-medium line-clamp-2">{product.name}</CardTitle>
+              <CardContent className="p-2 flex-grow">
+                <CardTitle className="text-xs sm:text-base font-medium line-clamp-2">{product.name}</CardTitle>
               </CardContent>
             </div>
           </DialogTrigger>
-        <CardFooter className="p-4 flex items-center justify-between">
-          <p className="text-lg font-bold">
+        <CardFooter className="p-2 flex items-center justify-between">
+          <p className="text-sm sm:text-lg font-bold">
             ${product.price.toFixed(2)}
           </p>
           <DialogTrigger asChild>
-            <Button>Buy</Button>
+            <Button size="sm">Buy</Button>
           </DialogTrigger>
         </CardFooter>
       </Card>

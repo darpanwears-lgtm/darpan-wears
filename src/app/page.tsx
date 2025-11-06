@@ -20,42 +20,52 @@ export default function Home() {
   const products = !isLoading && productsFromDb?.length === 0 ? PlaceHolderImages : productsFromDb;
 
   return (
-    <div
-      className="container mx-auto px-4 py-8"
-    >
-      <section className="text-center mb-12 rounded-lg p-6 bg-white/50">
-        <h1 className="text-4xl font-bold tracking-tight lg:text-5xl font-headline">
-          New Arrivals
-        </h1>
-        <p className="mt-4 text-lg text-muted-foreground">
-          Check out the latest collection from Darpan Wears.
-        </p>
-      </section>
+    <div className="flex flex-col flex-grow">
+      <div
+        className="container mx-auto px-4 py-8"
+        style={{
+          backgroundImage:
+            "url('https://i.pinimg.com/736x/72/1f/65/721f65d0d3b28ec5f86a3df5d2a4aedd.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          flexGrow: 1,
+        }}
+      >
+        <section className="text-center mb-12 rounded-lg p-6 bg-white/50">
+          <h1 className="text-4xl font-bold tracking-tight lg:text-5xl font-headline">
+            New Arrivals
+          </h1>
+          <p className="mt-4 text-lg text-muted-foreground">
+            Check out the latest collection from Darpan Wears.
+          </p>
+        </section>
 
-      <section id="all-products" className="rounded-lg p-6 bg-white/50">
-        <h2 className="text-2xl font-bold mb-6 font-headline">All Products</h2>
-        {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="flex flex-col space-y-3">
-                <Skeleton className="h-[250px] w-full rounded-xl" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-[200px]" />
-                  <Skeleton className="h-4 w-[150px]" />
+        <section id="all-products" className="rounded-lg p-6 bg-white/50">
+          <h2 className="text-2xl font-bold mb-6 font-headline">All Products</h2>
+          {isLoading ? (
+            <div className="grid grid-cols-3 gap-2 md:grid-cols-4 md:gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="flex flex-col space-y-3">
+                  <Skeleton className="h-[150px] sm:h-[250px] w-full rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
-            {products?.map((product: Product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        )}
-      </section>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
+              {products?.map((product: Product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
+        </section>
 
-      <Recommendations />
+        <Recommendations />
+      </div>
     </div>
   );
 }
