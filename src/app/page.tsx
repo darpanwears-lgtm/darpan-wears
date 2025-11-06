@@ -14,7 +14,6 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FilterSheet } from '@/components/filter-sheet';
 
 export default function Home() {
@@ -109,25 +108,13 @@ export default function Home() {
         </section>
 
         <section className="mb-8 p-4 border rounded-lg">
-             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="sm:col-span-1">
                     <Input 
                         placeholder="Search products..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                </div>
-                <div className="sm:col-span-1">
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Sort by" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="default">Default</SelectItem>
-                            <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                            <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                        </SelectContent>
-                    </Select>
                 </div>
                 <div className="sm:col-span-1">
                     <FilterSheet 
@@ -137,6 +124,8 @@ export default function Home() {
                         priceRange={priceRange}
                         onPriceRangeChange={setPriceRange}
                         maxPrice={maxPrice}
+                        sortBy={sortBy}
+                        onSortByChange={setSortBy}
                     />
                 </div>
             </div>

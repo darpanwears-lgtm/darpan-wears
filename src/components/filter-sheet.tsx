@@ -14,6 +14,8 @@ interface FilterSheetProps {
     priceRange: number[];
     onPriceRangeChange: (value: number[]) => void;
     maxPrice: number;
+    sortBy: string;
+    onSortByChange: (value: string) => void;
 }
 
 export function FilterSheet({
@@ -22,21 +24,36 @@ export function FilterSheet({
     onCategoryChange,
     priceRange,
     onPriceRangeChange,
-    maxPrice
+    maxPrice,
+    sortBy,
+    onSortByChange,
 }: FilterSheetProps) {
   return (
     <Sheet>
         <SheetTrigger asChild>
             <Button variant="outline" className="w-full justify-start text-left font-normal">
                 <Filter className="mr-2 h-4 w-4" />
-                Filters
+                Filters & Sort
             </Button>
         </SheetTrigger>
         <SheetContent>
             <SheetHeader>
-                <SheetTitle>Filters</SheetTitle>
+                <SheetTitle>Filters & Sort</SheetTitle>
             </SheetHeader>
             <div className="grid gap-6 py-6">
+                <div>
+                     <label className="text-sm font-medium mb-2 block">Sort by</label>
+                    <Select value={sortBy} onValueChange={onSortByChange}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Sort by" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="default">Default</SelectItem>
+                            <SelectItem value="price-asc">Price: Low to High</SelectItem>
+                            <SelectItem value="price-desc">Price: High to Low</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
                  <div>
                      <label className="text-sm font-medium mb-2 block">Category</label>
                      <Select value={category} onValueChange={onCategoryChange}>
