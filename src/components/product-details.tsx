@@ -50,7 +50,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     src={product.imageUrl}
                     alt={product.name}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                     data-ai-hint={product.imageHint}
                 />
               </div>
