@@ -57,9 +57,6 @@ export default function Home() {
           <h2 className="text-3xl font-bold tracking-tight lg:text-4xl font-headline">
             Our Products
           </h2>
-          <p className="mt-4 text-lg text-muted-foreground">
-            Check out the latest collection from Darpan Wears.
-          </p>
         </section>
 
         <section>
