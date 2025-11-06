@@ -1,5 +1,7 @@
+
 'use client';
 
+import { useMemo, useState } from 'react';
 import { ProductCard } from '@/components/product-card';
 import { Recommendations } from '@/components/recommendations';
 import { useCollection } from '@/firebase';
@@ -11,6 +13,10 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Separator } from '@/components/ui/separator';
 
 export default function Home() {
   const firestore = useFirestore();
@@ -21,6 +27,36 @@ export default function Home() {
   const { data: productsFromDb, isLoading } = useCollection<Product>(productsCollection);
 
   const products = !isLoading && productsFromDb?.length === 0 ? PlaceHolderImages : productsFromDb;
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [category, setCategory] = useState('all');
+  const [priceRange, setPriceRange] = useState([500]);
+  
+  const categories = useMemo(() => {
+    if (!products) return [];
+    const allCategories = products.map(p => p.category);
+    return ['all', ...Array.from(new Set(allCategories))];
+  }, [products]);
+
+  const maxPrice = useMemo(() => {
+    if (!products) return 100;
+    return Math.max(...products.map(p => p.price), 100);
+  }, [products]);
+
+  const filteredProducts = useMemo(() => {
+    if (!products) return [];
+    return products
+      .filter(product => 
+        product.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .filter(product => 
+        category === 'all' ? true : product.category === category
+      )
+      .filter(product =>
+        product.price <= priceRange[0]
+      );
+  }, [products, searchTerm, category, priceRange]);
+
 
   return (
     <div className="flex flex-col flex-grow">
@@ -38,9 +74,6 @@ export default function Home() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold font-headline mb-4 leading-tight">
             Style Redefined
           </h1>
-          <p className="text-lg sm:text-xl max-w-2xl mb-8">
-            Explore our curated collection of the latest trends and timeless pieces.
-          </p>
           <Button asChild size="lg" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }}>
             <Link href="#all-products">Shop Now</Link>
           </Button>
@@ -53,10 +86,46 @@ export default function Home() {
           flexGrow: 1,
         }}
       >
-        <section className="text-center mb-12" id="all-products">
+        <section className="text-center mb-8" id="all-products">
           <h2 className="text-3xl font-bold tracking-tight lg:text-4xl font-headline">
             Our Products
           </h2>
+        </section>
+
+        <section className="mb-8 p-4 border rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="md:col-span-1">
+                    <Input 
+                        placeholder="Search products..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div className="md:col-span-1">
+                     <Select value={category} onValueChange={setCategory}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {categories.map(cat => (
+                                <SelectItem key={cat} value={cat}>
+                                    {cat === 'all' ? 'All Categories' : cat}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <div className="md:col-span-1 space-y-2">
+                    <label className="text-sm font-medium">Price up to: <span className="font-bold">${priceRange[0]}</span></label>
+                    <Slider 
+                        min={0}
+                        max={maxPrice}
+                        step={1}
+                        value={priceRange}
+                        onValueChange={setPriceRange}
+                    />
+                </div>
+            </div>
         </section>
 
         <section>
@@ -73,11 +142,19 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
-              {products?.map((product: Product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            <>
+              {filteredProducts.length > 0 ? (
+                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
+                  {filteredProducts.map((product: Product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10">
+                    <p className="text-muted-foreground">No products match your filters.</p>
+                </div>
+              )}
+            </>
           )}
         </section>
 
