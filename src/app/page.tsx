@@ -15,6 +15,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Input } from '@/components/ui/input';
 import { FilterSheet } from '@/components/filter-sheet';
+import { Search } from 'lucide-react';
 
 export default function Home() {
   const firestore = useFirestore();
@@ -109,11 +110,13 @@ export default function Home() {
 
         <section className="mb-8 p-4 border rounded-lg">
              <div className="flex items-center gap-4">
-                <div className="flex-grow">
+                <div className="flex-grow relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <Input 
                         placeholder="Search products..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10"
                     />
                 </div>
                 <div>
