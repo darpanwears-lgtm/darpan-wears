@@ -24,28 +24,15 @@ const PersonalizedRecommendationsOutputSchema = z.object({
 });
 export type PersonalizedRecommendationsOutput = z.infer<typeof PersonalizedRecommendationsOutputSchema>;
 
-const getProductRecommendations = ai.defineTool({
-    name: 'getProductRecommendations',
-    description: 'Suggest relevant product IDs to the user based on their viewing and purchase history. Consider inventory levels to only suggest products that are in stock.',
-    inputSchema: PersonalizedRecommendationsInputSchema,
-    outputSchema: z.array(z.string()).describe('List of product IDs'),
-  },
-  async (input) => {
-    //This function is not implemented and should use an external recommendation service
-    return [];
-  }
-);
-
 const personalizedRecommendationsPrompt = ai.definePrompt({
   name: 'personalizedRecommendationsPrompt',
-  tools: [getProductRecommendations],
   input: {
     schema: PersonalizedRecommendationsInputSchema,
   },
   output: {
     schema: PersonalizedRecommendationsOutputSchema,
   },
-  prompt: `Based on the user's viewing history of these product IDs: {{{viewingHistory}}} and purchase history of these product IDs: {{{purchaseHistory}}}, recommend products they might be interested in. Use the getProductRecommendations tool, be sure to consider the inventory levels: {{{inventoryLevels}}}.`,
+  prompt: `Based on the user's viewing history of these product IDs: {{{viewingHistory}}} and purchase history of these product IDs: {{{purchaseHistory}}}, recommend a list of product IDs they might be interested in. Only recommend products that have inventory levels greater than 0 based on this data: {{{inventoryLevels}}}.`,
 });
 
 const personalizedRecommendationsFlow = ai.defineFlow(

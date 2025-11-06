@@ -18,9 +18,15 @@ export function Recommendations() {
     () => (firestore ? collection(firestore, 'products') : null),
     [firestore]
   );
+  const { data: allProducts } = useCollection<Product>(productsCollection);
   
   useEffect(() => {
     const fetchRecommendations = async () => {
+      if (!allProducts) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const viewingHistory = JSON.parse(localStorage.getItem('viewingHistory') || '[]');
         const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
@@ -30,15 +36,25 @@ export function Recommendations() {
           return;
         }
 
-        // We can't pass inventory now as it's not available on the client
+        const inventoryLevels = allProducts.reduce((acc, product) => {
+          acc[product.id] = product.stockQuantity;
+          return acc;
+        }, {} as Record<string, number>);
+
         const result = await getPersonalizedRecommendations({
           viewingHistory,
           purchaseHistory,
-          inventoryLevels: {},
+          inventoryLevels,
         });
         
         if (result && result.recommendations && result.recommendations.length > 0 && productsCollection) {
           const recommendedIds = result.recommendations.slice(0, 10); // Limit to 10 recommendations for query performance
+          
+          if(recommendedIds.length === 0) {
+            setLoading(false);
+            return;
+          }
+
           const q = query(productsCollection, where('__name__', 'in', recommendedIds));
           const querySnapshot = await getDocs(q);
           const recommendations: Product[] = [];
@@ -55,7 +71,7 @@ export function Recommendations() {
     };
 
     fetchRecommendations();
-  }, [productsCollection]);
+  }, [allProducts, productsCollection]);
 
   if (loading) {
     return (
