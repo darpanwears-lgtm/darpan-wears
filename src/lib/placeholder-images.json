@@ -2,50 +2,121 @@
   "placeholderImages": [
     {
       "id": "t-shirt-1",
-      "description": "A stylish black t-shirt.",
-      "imageUrl": "https://images.unsplash.com/photo-1657364890995-1ec4bb3aefcf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxibGFjayUyMHQtc2hpcnR8ZW58MHx8fHwxNzYyNDI0NjQwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "name": "Classic Black Tee",
+      "description": "A stylish black t-shirt made from 100% premium cotton. Perfect for any casual occasion.",
+      "price": 29.99,
+      "category": "T-Shirts",
+      "availableSizes": [
+        "S",
+        "M",
+        "L",
+        "XL"
+      ],
+      "stockQuantity": 50,
+      "imageUrl": "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMHQtc2hpcnR8ZW58MHx8fHwxNzYyNDI0NjQwfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "black t-shirt"
     },
     {
       "id": "jeans-1",
-      "description": "Classic blue denim jeans.",
-      "imageUrl": "https://images.unsplash.com/photo-1714143136372-ddaf8b606da7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibHVlJTIwamVhbnN8ZW58MHx8fHwxNzYyNDIwMTI3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "name": "Urban Denim Jeans",
+      "description": "Classic blue denim jeans with a modern slim fit. Durable and stylish for everyday wear.",
+      "price": 89.99,
+      "category": "Jeans",
+      "availableSizes": [
+        "30",
+        "32",
+        "34",
+        "36"
+      ],
+      "stockQuantity": 40,
+      "imageUrl": "https://images.unsplash.com/photo-1602293589930-45a9ec996d8f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibHVlJTIwamVhbnN8ZW58MHx8fHwxNzYyNDIwMTI3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "blue jeans"
     },
     {
       "id": "hoodie-1",
-      "description": "A comfortable gray hoodie.",
-      "imageUrl": "https://images.unsplash.com/photo-1597214271070-e6b9851b4c97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxncmF5JTIwaG9vZGllfGVufDB8fHx8MTc2MjQ0NDg2NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "name": "Cozy Gray Hoodie",
+      "description": "A comfortable gray hoodie made with a soft fleece interior. Ideal for cool evenings.",
+      "price": 59.99,
+      "category": "Hoodies",
+      "availableSizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "stockQuantity": 30,
+      "imageUrl": "https://images.unsplash.com/photo-1556821840-3a6d76541855?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxncmF5JTIwaG9vZGllfGVufDB8fHx8MTc2MjQ0NDg2NHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "gray hoodie"
     },
     {
       "id": "sneakers-1",
-      "description": "White canvas sneakers.",
-      "imageUrl": "https://images.unsplash.com/photo-1544441892-794166f1e3be?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHx3aGl0ZSUyMHNuZWFrZXJzfGVufDB8fHx8MTc2MjM1NDA5OHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "name": "Minimalist Sneakers",
+      "description": "Clean white canvas sneakers that pair perfectly with any outfit. Features a cushioned insole.",
+      "price": 79.99,
+      "category": "Shoes",
+      "availableSizes": [
+        "8",
+        "9",
+        "10",
+        "11"
+      ],
+      "stockQuantity": 60,
+      "imageUrl": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3aGl0ZSUyMHNuZWFrZXJzfGVufDB8fHx8MTc2MjM1NDA5OHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "white sneakers"
     },
     {
       "id": "jacket-1",
-      "description": "A modern leather jacket.",
+      "name": "Rebel Leather Jacket",
+      "description": "A timeless leather jacket with a modern cut. Made from high-quality faux leather.",
+      "price": 199.99,
+      "category": "Jackets",
+      "availableSizes": [
+        "M",
+        "L",
+        "XL"
+      ],
+      "stockQuantity": 20,
       "imageUrl": "https://images.unsplash.com/photo-1551028719-00167b16eac5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsZWF0aGVyJTIwamFja2V0fGVufDB8fHx8MTc2MjM5NjEzMnww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "leather jacket"
     },
     {
       "id": "hat-1",
-      "description": "A cool baseball cap.",
-      "imageUrl": "https://images.unsplash.com/photo-1691256676359-20e5c6d4bc92?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxiYXNlYmFsbCUyMGNhcHxlbnwwfHx8fDE3NjIzNTU4NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "name": "Everyday Baseball Cap",
+      "description": "A simple and stylish baseball cap in black. Adjustable strap for a perfect fit.",
+      "price": 24.99,
+      "category": "Accessories",
+      "availableSizes": [
+        "One Size"
+      ],
+      "stockQuantity": 100,
+      "imageUrl": "https://images.unsplash.com/photo-1588850561407-ed27b72d2b75?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxiYXNlYmFsbCUyMGNhcHxlbnwwfHx8fDE3NjIzNTU4NjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "baseball cap"
     },
     {
       "id": "dress-1",
-      "description": "An elegant summer dress.",
-      "imageUrl": "https://images.unsplash.com/photo-1609695813802-3c443be34359?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxzdW1tZXIlMjBkcmVzc3xlbnwwfHx8fDE3NjI0MzQwODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "name": "Flowy Summer Dress",
+      "description": "A light and airy summer dress with a floral pattern. Perfect for warm, sunny days.",
+      "price": 69.99,
+      "category": "Dresses",
+      "availableSizes": [
+        "S",
+        "M",
+        "L"
+      ],
+      "stockQuantity": 35,
+      "imageUrl": "https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdW1tZXIlMjBkcmVzc3xlbnwwfHx8fDE3NjI0MzQwODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "summer dress"
     },
     {
       "id": "watch-1",
-      "description": "A sleek digital watch.",
-      "imageUrl": "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxkaWdpdGFsJTIwd2F0Y2h8ZW58MHx8fHwxNzYyNDUzNjYzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "name": "Chrono Digital Watch",
+      "description": "A sleek and modern digital watch with a black metal strap. Features a stopwatch and alarm.",
+      "price": 129.99,
+      "category": "Accessories",
+      "availableSizes": [
+        "One Size"
+      ],
+      "stockQuantity": 25,
+      "imageUrl": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwd2F0Y2h8ZW58MHx8fHwxNzYyNDUzNjYzfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "digital watch"
     }
   ]

@@ -7,6 +7,7 @@ import { collection } from 'firebase/firestore';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
   const firestore = useFirestore();
@@ -14,31 +15,33 @@ export default function Home() {
     () => (firestore ? collection(firestore, 'products') : null),
     [firestore]
   );
-  const { data: products, isLoading } = useCollection<Product>(productsCollection);
+  const { data: productsFromDb, isLoading } = useCollection<Product>(productsCollection);
+
+  const products = !isLoading && productsFromDb?.length === 0 ? PlaceHolderImages : productsFromDb;
 
   return (
     <div
       className="container mx-auto px-4 py-8"
     >
-      <section className="text-center mb-12 rounded-lg p-6 bg-black/50">
-        <h1 className="text-4xl font-bold tracking-tight lg:text-5xl font-headline text-white">
+      <section className="text-center mb-12 rounded-lg p-6 bg-white/50">
+        <h1 className="text-4xl font-bold tracking-tight lg:text-5xl font-headline">
           New Arrivals
         </h1>
-        <p className="mt-4 text-lg text-gray-200">
+        <p className="mt-4 text-lg text-muted-foreground">
           Check out the latest collection from Darpan Wears.
         </p>
       </section>
 
-      <section id="all-products" className="rounded-lg p-6 bg-black/50">
-        <h2 className="text-2xl font-bold mb-6 font-headline text-white">All Products</h2>
+      <section id="all-products" className="rounded-lg p-6 bg-white/50">
+        <h2 className="text-2xl font-bold mb-6 font-headline">All Products</h2>
         {isLoading ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             {[...Array(8)].map((_, i) => (
               <div key={i} className="flex flex-col space-y-3">
-                <Skeleton className="h-[250px] w-full rounded-xl bg-gray-700" />
+                <Skeleton className="h-[250px] w-full rounded-xl" />
                 <div className="space-y-2">
-                  <Skeleton className="h-4 w-[200px] bg-gray-700" />
-                  <Skeleton className="h-4 w-[150px] bg-gray-700" />
+                  <Skeleton className="h-4 w-[200px]" />
+                  <Skeleton className="h-4 w-[150px]" />
                 </div>
               </div>
             ))}
