@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { ProductDetails } from './product-details';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Product } from '@/lib/types';
 import {
   Dialog,
@@ -37,17 +37,12 @@ export function ProductCard({ product }: ProductCardProps) {
               </CardHeader>
               <CardContent className="p-2 flex-grow">
                 <CardTitle className="text-xs sm:text-base font-medium line-clamp-2">{product.name}</CardTitle>
+                 <p className="text-sm sm:text-lg font-bold">
+                    ${product.price.toFixed(2)}
+                </p>
               </CardContent>
             </div>
           </DialogTrigger>
-        <CardFooter className="p-2 flex items-center justify-between">
-          <p className="text-sm sm:text-lg font-bold">
-            ${product.price.toFixed(2)}
-          </p>
-          <DialogTrigger asChild>
-            <Button size="sm">Buy</Button>
-          </DialogTrigger>
-        </CardFooter>
       </Card>
       <DialogContent className="max-w-4xl">
         <ProductDetails product={product} />
