@@ -5,17 +5,17 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import type { User } from "@/lib/types";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import type { User } from 'firebase/auth';
 
 interface ProfileTabProps {
     user: User;
 }
 
 const profileSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
+  displayName: z.string().min(2, { message: 'Name must be at least 2 characters.' }).optional(),
   email: z.string().email({ message: 'Please enter a valid email.' }),
 });
 
@@ -24,8 +24,8 @@ export function ProfileTab({ user }: ProfileTabProps) {
   const form = useForm<z.infer<typeof profileSchema>>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      name: user.name,
-      email: user.email,
+      displayName: user.displayName || '',
+      email: user.email || '',
     },
   });
 
@@ -46,7 +46,7 @@ export function ProfileTab({ user }: ProfileTabProps) {
       <CardContent>
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField control={form.control} name="name" render={({ field }) => (
+              <FormField control={form.control} name="displayName" render={({ field }) => (
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
@@ -59,7 +59,7 @@ export function ProfileTab({ user }: ProfileTabProps) {
                 <FormItem>
                   <FormLabel>Email Address</FormLabel>
                   <FormControl>
-                    <Input type="email" {...field} />
+                    <Input type="email" {...field} disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

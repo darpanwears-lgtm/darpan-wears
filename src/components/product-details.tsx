@@ -21,7 +21,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   const router = useRouter();
 
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
-    product?.sizes ? product.sizes[0] : undefined
+    product?.availableSizes ? product.availableSizes[0] : undefined
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +31,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   }
 
   const handleBuyNow = () => {
-     if (product.sizes && !selectedSize) {
+     if (product.availableSizes && !selectedSize) {
       setError('Please select a size.');
       return;
     }
@@ -44,7 +44,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     <div className="grid md:grid-cols-2 gap-8 lg:gap-12 items-start">
         <div className="aspect-square w-full overflow-hidden rounded-lg bg-secondary">
         <Image
-            src={product.image}
+            src={product.imageUrl}
             alt={product.name}
             width={600}
             height={600}
@@ -57,7 +57,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <p className="text-2xl font-semibold mb-4 text-primary">${product.price.toFixed(2)}</p>
             <p className="text-muted-foreground mb-6">{product.description}</p>
             
-            {product.sizes && product.sizes.length > 0 && (
+            {product.availableSizes && product.availableSizes.length > 0 && (
                 <div className="mb-6">
                 <Label className="text-base font-medium mb-3 block">Size</Label>
                 <RadioGroup
@@ -65,7 +65,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     onValueChange={setSelectedSize}
                     className="flex items-center gap-2"
                 >
-                    {product.sizes.map((size) => (
+                    {product.availableSizes.map((size) => (
                     <FormItem key={size}>
                         <RadioGroupItem value={size} id={`size-${size}-${product.id}`} className="sr-only" />
                         <Label

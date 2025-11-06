@@ -10,8 +10,12 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Image from 'next/image';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { products } from '@/lib/products';
 import { Suspense } from 'react';
+import { useDoc } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { useFirestore, useMemoFirebase } from '@/firebase/provider';
+import type { Product } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -28,12 +32,50 @@ function CheckoutForm() {
   const productId = searchParams.get('productId');
   const size = searchParams.get('size');
   
-  const product = products.find(p => p.id === productId);
+  const firestore = useFirestore();
+
+  const productRef = useMemoFirebase(
+    () => (firestore && productId ? doc(firestore, 'products', productId) : null),
+    [firestore, productId]
+  );
+  const { data: product, isLoading } = useDoc<Product>(productRef);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: '', address: '', phone: '' },
   });
+  
+  if (isLoading) {
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <div className="grid md:grid-cols-2 gap-12">
+                <Card>
+                    <CardHeader><Skeleton className="h-8 w-1/2" /></CardHeader>
+                    <CardContent className="space-y-6">
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                        <Skeleton className="h-10 w-full" />
+                    </CardContent>
+                </Card>
+                 <div className="space-y-4">
+                    <Skeleton className="h-8 w-1/3" />
+                    <Card>
+                        <CardContent className="p-4 space-y-4">
+                            <div className="flex items-center gap-4">
+                                <Skeleton className="h-16 w-16 rounded-md" />
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-48" />
+                                    <Skeleton className="h-4 w-24" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+        </div>
+    )
+  }
 
   if (!product) {
     if (typeof window !== 'undefined') {
@@ -142,7 +184,7 @@ ${itemsSummary}\\n
             <CardContent className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Image src={product.image} alt={product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={product.imageHint}/>
+                    <Image src={product.imageUrl} alt={product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={product.imageHint}/>
                     <div>
                       <p className="font-medium">{product.name}</p>
                        <p className="text-sm text-muted-foreground">

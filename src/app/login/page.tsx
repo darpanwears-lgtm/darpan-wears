@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Link from 'next/link';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   email: z.string().email({ message: 'Please enter a valid email.' }),
@@ -18,15 +19,20 @@ const formSchema = z.object({
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { email: '', password: '' },
   });
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push('/account');
+    }
+  }, [isAuthenticated, router]);
+
   function onSubmit(values: z.infer<typeof formSchema>) {
-    login(values.email);
-    router.push('/account');
+    login(values.email, values.password);
   }
 
   return (

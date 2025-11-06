@@ -2,15 +2,23 @@
 
 import { useEffect, useState } from 'react';
 import { getPersonalizedRecommendations } from '@/ai/flows/personalized-product-recommendations';
-import { products as allProducts, inventory } from '@/lib/products';
 import { Product } from '@/lib/types';
 import { ProductCard } from './product-card';
 import { Skeleton } from './ui/skeleton';
+import { useCollection } from '@/firebase';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 
 export function Recommendations() {
   const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const firestore = useFirestore();
 
+  const productsCollection = useMemoFirebase(
+    () => (firestore ? collection(firestore, 'products') : null),
+    [firestore]
+  );
+  
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
@@ -22,14 +30,21 @@ export function Recommendations() {
           return;
         }
 
+        // We can't pass inventory now as it's not available on the client
         const result = await getPersonalizedRecommendations({
           viewingHistory,
           purchaseHistory,
-          inventoryLevels: inventory,
+          inventoryLevels: {},
         });
-
-        if (result && result.recommendations && result.recommendations.length > 0) {
-          const recommendations = allProducts.filter(p => result.recommendations.includes(p.id));
+        
+        if (result && result.recommendations && result.recommendations.length > 0 && productsCollection) {
+          const recommendedIds = result.recommendations.slice(0, 10); // Limit to 10 recommendations for query performance
+          const q = query(productsCollection, where('__name__', 'in', recommendedIds));
+          const querySnapshot = await getDocs(q);
+          const recommendations: Product[] = [];
+          querySnapshot.forEach((doc) => {
+            recommendations.push({ id: doc.id, ...doc.data() } as Product);
+          });
           setRecommendedProducts(recommendations);
         }
       } catch (error) {
@@ -40,7 +55,7 @@ export function Recommendations() {
     };
 
     fetchRecommendations();
-  }, []);
+  }, [productsCollection]);
 
   if (loading) {
     return (

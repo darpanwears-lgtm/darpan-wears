@@ -4,24 +4,34 @@ import { useEffect, useState } from 'react';
 import * as React from 'react';
 import { notFound, useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { products } from '@/lib/products';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { useDoc } from '@/firebase';
+import { doc } from 'firebase/firestore';
+import { useFirestore, useMemoFirebase } from '@/firebase/provider';
+import type { Product } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function ProductPage({ params }: { params: { id: string } }) {
   const { toast } = useToast();
   const router = useRouter();
-  const product = products.find((p) => p.id === params.id);
-  const [selectedSize, setSelectedSize] = useState<string | undefined>(
-    product?.sizes ? product.sizes[0] : undefined
+  const firestore = useFirestore();
+
+  const productRef = useMemoFirebase(
+    () => (firestore ? doc(firestore, 'products', params.id) : null),
+    [firestore, params.id]
   );
+  const { data: product, isLoading } = useDoc<Product>(productRef);
+
+  const [selectedSize, setSelectedSize] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (product) {
+      setSelectedSize(product.availableSizes?.[0]);
       const MAX_HISTORY_LENGTH = 10;
       const history = JSON.parse(localStorage.getItem('viewingHistory') || '[]');
       const updatedHistory = [product.id, ...history.filter((id: string) => id !== product.id)].slice(0, MAX_HISTORY_LENGTH);
@@ -29,12 +39,33 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     }
   }, [product]);
 
+  if (isLoading) {
+    return (
+        <div className="container mx-auto px-4 py-8">
+            <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
+                <Skeleton className="aspect-square w-full rounded-lg" />
+                <div className="flex flex-col justify-center space-y-4">
+                    <Skeleton className="h-10 w-3/4" />
+                    <Skeleton className="h-8 w-1/4" />
+                    <Skeleton className="h-20 w-full" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-12 w-12 rounded-md" />
+                        <Skeleton className="h-12 w-12 rounded-md" />
+                        <Skeleton className="h-12 w-12 rounded-md" />
+                    </div>
+                     <Skeleton className="h-12 w-full" />
+                </div>
+            </div>
+        </div>
+    );
+  }
+
   if (!product) {
     notFound();
   }
 
   const handleBuyNow = () => {
-    if (product.sizes && !selectedSize) {
+    if (product.availableSizes && !selectedSize) {
       setError('Please select a size.');
       return;
     }
@@ -48,7 +79,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div className="aspect-square w-full overflow-hidden rounded-lg bg-secondary">
           <Image
-            src={product.image}
+            src={product.imageUrl}
             alt={product.name}
             width={600}
             height={600}
@@ -61,7 +92,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           <p className="text-2xl font-semibold mb-4 text-primary">${product.price.toFixed(2)}</p>
           <p className="text-muted-foreground mb-6">{product.description}</p>
           
-          {product.sizes && product.sizes.length > 0 && (
+          {product.availableSizes && product.availableSizes.length > 0 && (
             <div className="mb-6">
               <Label className="text-base font-medium mb-3 block">Size</Label>
               <RadioGroup
@@ -69,7 +100,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 onValueChange={setSelectedSize}
                 className="flex items-center gap-2"
               >
-                {product.sizes.map((size) => (
+                {product.availableSizes.map((size) => (
                   <FormItem key={size}>
                     <RadioGroupItem value={size} id={`size-${size}`} className="sr-only" />
                     <Label

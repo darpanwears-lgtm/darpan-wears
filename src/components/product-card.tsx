@@ -26,7 +26,7 @@ export function ProductCard({ product }: ProductCardProps) {
               <CardHeader className="p-0">
                 <div className="aspect-[4/5] w-full overflow-hidden">
                   <Image
-                    src={product.image}
+                    src={product.imageUrl}
                     alt={product.name}
                     width={400}
                     height={500}

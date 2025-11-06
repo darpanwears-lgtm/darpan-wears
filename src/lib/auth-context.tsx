@@ -1,38 +1,79 @@
 'use client';
 
-import React, { createContext, useState, useContext, ReactNode } from 'react';
-import type { User } from './types';
+import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
+import { useUser, useAuth as useFirebaseAuth } from '@/firebase'; // Using the new firebase hooks
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { useFirestore } from '@/firebase';
+import {
+  initiateEmailSignUp,
+  initiateEmailSignIn,
+} from '@/firebase/non-blocking-login';
+import { signOut } from 'firebase/auth';
 
 interface AuthContextType {
-  user: User | null;
+  user: any | null; // Using 'any' for now, can be replaced with a proper User type from firebase
+  isAdmin: boolean;
+  isUserLoading: boolean;
   isAuthenticated: boolean;
-  login: (email: string, name?: string) => void;
+  login: (email: string, password?: string) => void;
   logout: () => void;
+  signup: (email: string, password?: string) => void;
+  makeAdmin: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const mockUser: User = {
-  id: 'user-123',
-  name: 'John Doe',
-  email: 'john.doe@example.com'
-};
-
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, isUserLoading } = useUser();
+  const auth = useFirebaseAuth();
+  const firestore = useFirestore();
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const login = (email: string, name: string = 'New User') => {
-    setUser({ ...mockUser, email, name });
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user && firestore) {
+        const adminRoleRef = doc(firestore, 'roles_admin', user.uid);
+        const adminDoc = await getDoc(adminRoleRef);
+        setIsAdmin(adminDoc.exists());
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user, firestore]);
+
+  const login = (email: string, password?: string) => {
+    if (auth && password) {
+      initiateEmailSignIn(auth, email, password);
+    }
+  };
+
+  const signup = (email: string, password?: string) => {
+    if (auth && password) {
+      initiateEmailSignUp(auth, email, password);
+    }
   };
 
   const logout = () => {
-    setUser(null);
+    if (auth) {
+      signOut(auth);
+    }
   };
+  
+  const makeAdmin = async () => {
+    if (user && firestore) {
+        const adminRoleRef = doc(firestore, 'roles_admin', user.uid);
+        await setDoc(adminRoleRef, { admin: true });
+        setIsAdmin(true); // Optimistically update admin state
+    }
+  }
 
-  const isAuthenticated = !!user;
+
+  const isAuthenticated = !!user && !isUserLoading;
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, isUserLoading, isAuthenticated, isAdmin, login, logout, signup, makeAdmin }}>
       {children}
     </AuthContext.Provider>
   );
