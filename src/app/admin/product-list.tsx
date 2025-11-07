@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ProductForm } from './product-form';
 import { FileEdit, Trash2, Link as LinkIcon } from 'lucide-react';
@@ -123,7 +123,10 @@ export function ProductList() {
                                                     </Button>
                                                 </DialogTrigger>
                                                 <DialogContent className="max-w-3xl">
-                                                <ProductForm product={product} onSuccess={() => setIsEditDialogOpen(false)} />
+                                                    <DialogHeader>
+                                                        <DialogTitle>Edit: {product.name}</DialogTitle>
+                                                    </DialogHeader>
+                                                    <ProductForm product={product} onSuccess={() => setIsEditDialogOpen(false)} />
                                                 </DialogContent>
                                             </Dialog>
                                             <AlertDialog>
