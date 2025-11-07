@@ -148,60 +148,62 @@ function CheckoutForm() {
     
     const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
 
-    addDoc(ordersCollection, orderData)
-      .then((docRef) => {
-          const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
-          const message = `
-New Order Received!
-Order ID: ${docRef.id}
-Customer ID: ${user.uid}
-Product ID: ${product.id}
+    try {
+        const docRef = await addDoc(ordersCollection, orderData);
+        
+        const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
+        const message = `
+  New Order Received!
+  Order ID: ${docRef.id}
+  Customer ID: ${user.uid}
+  Product ID: ${product.id}
+  
+  Customer Details:
+  Name: ${values.name}
+  Address: ${values.address}
+  Phone: ${values.phone}
+  Payment: ${values.paymentMethod}
+  
+  Order Item:
+  ${itemsSummary}
+  
+  Total Amount: $${total.toFixed(2)}
+        `.trim().replace(/^\s+/gm, '');
+  
+        const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
+        const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
+        localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
+        
+        const whatsappNumber = '919332307996';
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+        
+        toast({
+            title: "Order Placed!",
+            description: "Redirecting to WhatsApp to confirm your order.",
+        });
+        
+        // This will navigate the current browser window to WhatsApp.
+        window.location.href = whatsappUrl;
 
-Customer Details:
-Name: ${values.name}
-Address: ${values.address}
-Phone: ${values.phone}
-Payment: ${values.paymentMethod}
+    } catch (error) {
+        console.error("Error placing order:", error);
+        // This emits a detailed error for debugging but doesn't throw,
+        // so we add a user-facing toast as well.
+        const permissionError = new FirestorePermissionError({
+            path: `users/${user.uid}/orders`,
+            operation: 'create',
+            requestResourceData: orderData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
 
-Order Item:
-${itemsSummary}
-
-Total Amount: $${total.toFixed(2)}
-          `.trim().replace(/^\s+/gm, '');
-
-          const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
-          const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
-          localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
-          
-          const whatsappNumber = '919332307996';
-          const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-          
-          toast({
-              title: "Order Placed!",
-              description: "Redirecting to WhatsApp to confirm your order.",
-          });
-          
-          window.location.href = whatsappUrl;
-          
-          router.push(`/order/${docRef.id}`);
-
-      })
-      .catch((error) => {
-          console.error("Error placing order:", error);
-          const permissionError = new FirestorePermissionError({
-              path: `users/${user.uid}/orders`,
-              operation: 'create',
-              requestResourceData: orderData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
-          toast({
-              variant: 'destructive',
-              title: 'Order Failed',
-              description: 'Could not place your order. Please check your permissions and try again.',
-          });
-      }).finally(() => {
-        setIsSubmitting(false);
-      });
+        toast({
+            variant: 'destructive',
+            title: 'Order Failed',
+            description: 'Could not place your order. Please check your details and try again.',
+        });
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
