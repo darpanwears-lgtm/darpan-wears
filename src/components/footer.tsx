@@ -5,6 +5,7 @@ import { useUserContext } from '@/lib/user-context';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from 'lucide-react';
 import { HowToOrderDialog } from './how-to-order-dialog';
+import Image from 'next/image';
 
 export function Footer() {
   const { instagramUser: featuredUser } = useUserContext();
@@ -28,6 +29,7 @@ export function Footer() {
                   </Avatar>
                   <span className="font-semibold text-sm">{featuredUser}</span>
               </div>
+               <Image src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR5UFub5fjlTyQcL5KCD389Obnh6L-LDoBiWA&s" alt="Personalized Logo" width={32} height={32} className="rounded-full" />
           </div>
         )}
       </div>
