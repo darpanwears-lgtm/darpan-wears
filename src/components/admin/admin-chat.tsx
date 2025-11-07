@@ -2,7 +2,7 @@
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, addDoc, serverTimestamp, doc } from 'firebase/firestore';
+import { collection, query, orderBy, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
 import type { Chat, ChatMessage } from '@/lib/types';
 import { cn, generateColorFromString } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '../ui/avatar';
@@ -13,6 +13,7 @@ import { ScrollArea } from '../ui/scroll-area';
 import { Loader2, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { useAuth } from '@/lib/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 function ChatBubble({ message, isSender, senderInitial, senderColor }: { message: ChatMessage, isSender: boolean, senderInitial: string, senderColor: string }) {
     return (
@@ -40,6 +41,7 @@ function ChatBubble({ message, isSender, senderInitial, senderColor }: { message
 export function AdminChat() {
     const firestore = useFirestore();
     const { isAdmin } = useAuth();
+    const { toast } = useToast();
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
     const [message, setMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
@@ -73,19 +75,30 @@ export function AdminChat() {
         if (!message.trim() || !selectedChat || !firestore || !isAdmin) return;
         
         setIsSending(true);
+        const messageText = message;
+        setMessage('');
 
         const messagesColRef = collection(firestore, 'chats', selectedChat.userId, 'messages');
+        const chatDocRef = doc(firestore, 'chats', selectedChat.userId);
+        
         const messageData = {
             senderId: 'admin', // Special ID for admin
-            text: message,
+            text: messageText,
             timestamp: Date.now()
+        };
+
+        const chatData = {
+            lastMessage: `Admin: ${messageText}`,
+            lastMessageTimestamp: Date.now(),
         };
 
         try {
             await addDoc(messagesColRef, messageData);
-            setMessage('');
+            await setDoc(chatDocRef, chatData, { merge: true });
         } catch (error) {
             console.error("Error sending message:", error);
+            toast({ title: 'Error', description: 'Could not send message.', variant: 'destructive' });
+            setMessage(messageText);
         } finally {
             setIsSending(false);
         }
@@ -141,7 +154,7 @@ export function AdminChat() {
                                         message={msg} 
                                         isSender={isSender}
                                         senderInitial={isSender ? "A" : getInitials(selectedChat.userName)}
-                                        senderColor={isSender ? "var(--primary)" : generateColorFromString(selectedChat.userName)}
+                                        senderColor={isSender ? generateColorFromString('Admin') : generateColorFromString(selectedChat.userName)}
                                     />
                                 )
                             })}

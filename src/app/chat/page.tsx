@@ -87,26 +87,31 @@ export default function ChatPage() {
         const messagesColRef = collection(firestore, 'chats', user.uid, 'messages');
         const chatDocRef = doc(firestore, 'chats', user.uid);
         
+        const messageText = message;
+        setMessage('');
+
         const messageData = {
             senderId: user.uid,
-            text: message,
+            text: messageText,
             timestamp: Date.now()
         };
 
         const chatData = {
-            lastMessage: message,
+            lastMessage: messageText,
             lastMessageTimestamp: Date.now(),
             userName: userProfile?.name || 'Anonymous',
             userId: user.uid,
         };
 
         try {
+            // First, add the message to the subcollection
             await addDoc(messagesColRef, messageData);
+            // Then, update the top-level chat document
             await setDoc(chatDocRef, chatData, { merge: true });
-            setMessage('');
         } catch (error) {
             console.error("Error sending message:", error);
             toast({ title: 'Error', description: 'Could not send message.', variant: 'destructive' });
+            setMessage(messageText); // Restore message on error
         } finally {
             setIsSending(false);
         }
