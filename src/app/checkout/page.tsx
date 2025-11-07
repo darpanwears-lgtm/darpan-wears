@@ -150,7 +150,6 @@ function CheckoutForm() {
 
     addDoc(ordersCollection, orderData)
       .then((docRef) => {
-          // This block executes on successful write to Firestore
           const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
           const message = `
 New Order Received!
@@ -182,15 +181,12 @@ Total Amount: $${total.toFixed(2)}
               description: "Redirecting to WhatsApp to confirm your order.",
           });
           
-          // Redirect to WhatsApp
           window.location.href = whatsappUrl;
           
-          // Navigate to the order confirmation page in the background
           router.push(`/order/${docRef.id}`);
 
       })
       .catch((error) => {
-          // This block executes if the write to Firestore fails
           console.error("Error placing order:", error);
           const permissionError = new FirestorePermissionError({
               path: `users/${user.uid}/orders`,
@@ -203,7 +199,8 @@ Total Amount: $${total.toFixed(2)}
               title: 'Order Failed',
               description: 'Could not place your order. Please check your permissions and try again.',
           });
-          setIsSubmitting(false); // Stop loading indicator on failure
+      }).finally(() => {
+        setIsSubmitting(false);
       });
   }
 
@@ -302,3 +299,5 @@ export default function CheckoutPage() {
     </Suspense>
   )
 }
+
+    
