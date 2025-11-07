@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ const loginSchema = z.object({
 });
 
 const signupSchema = z.object({
-  instagramUsername: z.string().min(2, { message: 'Instagram username is required.' }),
+  name: z.string().min(2, { message: 'Name is required.' }),
   email: z.string().email({ message: 'Invalid email address.' }),
   password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
 });
@@ -49,7 +50,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
 
   const signupForm = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { instagramUsername: '', email: '', password: '' },
+    defaultValues: { name: '', email: '', password: '' },
   });
 
   const handleLogin = async (values: z.infer<typeof loginSchema>) => {
@@ -70,7 +71,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
 
   const handleSignUp = async (values: z.infer<typeof signupSchema>) => {
     setIsSubmitting(true);
-    const success = await emailSignUp(values.email, values.password, values.instagramUsername);
+    const success = await emailSignUp(values.email, values.password, values.name);
     if (success) {
       toast({ title: "Account Created", description: "You have been successfully signed up!" });
       onOpenChange(false);
@@ -122,7 +123,7 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
             <TabsContent value="signup">
                  <Form {...signupForm}>
                     <form onSubmit={signupForm.handleSubmit(handleSignUp)} className="space-y-4 pt-4">
-                        <FormField control={signupForm.control} name="instagramUsername" render={({ field }) => ( <FormItem><FormLabel>Instagram Username</FormLabel><FormControl><Input placeholder="your_insta_name" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={signupForm.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input placeholder="Your Name" {...field} /></FormControl><FormMessage /></FormItem> )} />
                         <FormField control={signupForm.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="you@example.com" {...field} /></FormControl><FormMessage /></FormItem> )} />
                         <FormField control={signupForm.control} name="password" render={({ field }) => ( <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem> )} />
                         <Button type="submit" className="w-full" disabled={isSubmitting}>

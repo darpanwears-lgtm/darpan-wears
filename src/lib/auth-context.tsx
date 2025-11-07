@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
@@ -17,7 +18,7 @@ interface AdminAuthContextType {
   login: (password: string) => Promise<boolean>;
   logout: () => void;
   emailLogin: (email: string, pass: string) => Promise<boolean>;
-  emailSignUp: (email: string, pass: string, instaName: string) => Promise<boolean>;
+  emailSignUp: (email: string, pass: string, name: string) => Promise<boolean>;
   isAuthLoading: boolean;
 }
 
@@ -118,7 +119,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  const emailSignUp = async (email: string, pass: string, instaName: string): Promise<boolean> => {
+  const emailSignUp = async (email: string, pass: string, name: string): Promise<boolean> => {
     if (!auth || !firestore) return false;
     setIsAuthLoading(true);
     try {
@@ -127,7 +128,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         const profileData: UserProfile = {
             uid: newUser.uid,
-            name: instaName, // Using Instagram username as the main display name
+            name: name,
             email: newUser.email || '',
         };
         
