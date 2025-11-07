@@ -53,19 +53,21 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: '', address: '', phone: '', paymentMethod: 'COD' },
+    defaultValues: { name: '', address: '', phone: '' },
   });
 
   useEffect(() => {
-    if (userProfile) {
+    // When the dialog opens, reset the form. If a user profile exists,
+    // populate the fields but leave paymentMethod undefined so the user must choose.
+    if (open) {
         form.reset({
-            name: userProfile.name || '',
-            address: userProfile.address || '',
-            phone: userProfile.phone || '',
-            paymentMethod: 'COD',
-        })
+            name: userProfile?.name || '',
+            address: userProfile?.address || '',
+            phone: userProfile?.phone || '',
+            paymentMethod: undefined,
+        });
     }
-  }, [userProfile, form, open]); // re-populate when dialog opens
+  }, [userProfile, form, open]);
   
   useEffect(() => {
     // Proactively sign in anonymous users when the dialog opens
@@ -222,7 +224,7 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
                                     <FormControl>
                                     <RadioGroup
                                         onValueChange={field.onChange}
-                                        defaultValue={field.value}
+                                        value={field.value}
                                         className="flex pt-2 gap-4"
                                     >
                                         <FormItem className="flex items-center space-x-3 space-y-0">
@@ -287,3 +289,5 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
     </Dialog>
   );
 }
+
+    
