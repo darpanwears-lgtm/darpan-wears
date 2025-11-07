@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useUser, useAuth as useFirebaseAuth, useFirestore } from '@/firebase';
+import { useUser, useAuth as useFirebaseAuth, useFirestore, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
@@ -110,24 +110,35 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-        const result = await signInWithPopup(auth, provider);
-        const gUser = result.user;
-        const userProfileRef = doc(firestore, 'users', gUser.uid);
-        
-        const profileData: UserProfile = {
-            uid: gUser.uid,
-            name: gUser.displayName || 'New User',
-            email: gUser.email || '',
-            photoURL: gUser.photoURL || '',
-        };
-        
-        await setDoc(userProfileRef, profileData, { merge: true });
-        setIsAuthLoading(false);
-        return true;
+      const result = await signInWithPopup(auth, provider);
+      const gUser = result.user;
+      const userProfileRef = doc(firestore, 'users', gUser.uid);
+
+      const profileData: UserProfile = {
+        uid: gUser.uid,
+        name: gUser.displayName || 'New User',
+        email: gUser.email || '',
+        photoURL: gUser.photoURL || '',
+      };
+
+      // Non-blocking write with proper error handling
+      setDoc(userProfileRef, profileData, { merge: true }).catch(
+        (serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: userProfileRef.path,
+            operation: 'write',
+            requestResourceData: profileData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+        }
+      );
+
+      setIsAuthLoading(false);
+      return true;
     } catch (error) {
-        console.error("Google sign-in failed:", error);
-        setIsAuthLoading(false);
-        return false;
+      console.error('Google sign-in failed:', error);
+      setIsAuthLoading(false);
+      return false;
     }
   };
 
