@@ -92,37 +92,38 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
         const guestOrdersCollection = collection(firestore, 'guestOrders');
         const docRef = await addDoc(guestOrdersCollection, orderData);
         
-        const emailMessageBody = `
-New Order Received!
+        const whatsappMessageBody = `
+*New Order Received!*
 
-Order ID: ${docRef.id}
-Customer: ${values.name}
+*Order ID:* ${docRef.id}
+*Customer:* ${values.name}
 
-Shipping Address:
+*Shipping Address:*
 ${values.address}
-${values.phone}
+*Phone:* ${values.phone}
 
-Payment Method: ${values.paymentMethod}
+*Payment Method:* ${values.paymentMethod}
 
-Item:
-- ${product.name}
-- Size: ${selectedSize || 'N/A'}
-- Price: ₹${total.toFixed(2)}
+---
+*Item:*
+- *Product:* ${product.name}
+- *Size:* ${selectedSize || 'N/A'}
+- *Price:* ₹${total.toFixed(2)}
+---
 
-Total: ₹${total.toFixed(2)}
+*Total:* *₹${total.toFixed(2)}*
         `.trim().replace(/^\s+/gm, '');
 
-        const emailAddress = 'darpanwears@gmail.com';
-        const emailSubject = `New Order Confirmation: ${docRef.id}`;
-        const emailUrl = `mailto:${emailAddress}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailMessageBody)}`;
+        const whatsappNumber = '919332307996';
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessageBody)}`;
         
         toast({
             title: "Order Placed!",
-            description: "Please confirm your order via email.",
+            description: "Confirm your order on WhatsApp.",
         });
         
         if (typeof window !== 'undefined') {
-            window.location.href = emailUrl;
+            window.location.href = whatsappUrl;
         }
 
         onOpenChange(false);
