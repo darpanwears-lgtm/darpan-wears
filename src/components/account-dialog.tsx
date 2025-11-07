@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useCollection } from '@/firebase';
+import { useUser, useCollection, useAuth } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { doc, setDoc, getDoc, updateDoc, collection, query, orderBy } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
@@ -19,7 +19,6 @@ import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ScrollArea } from './ui/scroll-area';
-import { useAuth } from '@/lib/auth-context';
 
 
 function ProfileTab() {
@@ -226,7 +225,7 @@ interface AccountDialogProps {
 export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
-  const firebaseAuth = useFirebaseAuth();
+  const firebaseAuth = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
