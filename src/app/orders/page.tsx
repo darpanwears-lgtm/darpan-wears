@@ -49,7 +49,7 @@ function OrderList() {
         return (
              <Card>
                 <CardHeader>
-                    <CardTitle>Manage Customer Orders</CardTitle>
+                    <CardTitle>Customer Orders</CardTitle>
                     <CardDescription>View and update the status of all orders.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -62,7 +62,7 @@ function OrderList() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Manage Customer Orders</CardTitle>
+                <CardTitle>Customer Orders</CardTitle>
                 <CardDescription>View and update the status of all orders.</CardDescription>
             </CardHeader>
             <CardContent>
@@ -73,25 +73,24 @@ function OrderList() {
                                 <AccordionTrigger>
                                      <div className="flex justify-between items-center w-full pr-4">
                                         <div className="text-left">
-                                            <p className="font-medium">Order #{order.id ? order.id.slice(0, 7) : 'N/A'}</p>
-                                            <p className="text-sm text-muted-foreground">{order.shippingAddress.name} - {format(new Date(order.orderDate), 'PPP')}</p>
+                                            <p className="font-medium">Order from: {order.shippingAddress.name}</p>
+                                            <p className="text-sm text-muted-foreground">Placed on {format(new Date(order.orderDate), 'PPP')}</p>
                                         </div>
-                                        <p className="text-lg font-bold">${order.totalAmount.toFixed(2)}</p>
                                         <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                             order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
                                             order.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
                                             order.status === 'Shipped' ? 'bg-yellow-100 text-yellow-800' :
                                             'bg-blue-100 text-blue-800'
-                                        }`}>{order.status}</div>
+                                        }`}>{order.status || 'N/A'}</div>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
                                     <div className="grid md:grid-cols-2 gap-6 p-4 bg-muted/50 rounded-md">
                                         <div>
-                                            <h4 className="font-semibold mb-2">Customer & Shipping</h4>
-                                            <p>{order.shippingAddress.name}</p>
-                                            <p>{order.shippingAddress.address}</p>
-                                            <p>{order.shippingAddress.phone}</p>
+                                            <h4 className="font-semibold mb-2">Customer Details</h4>
+                                            <p><strong>Name:</strong> {order.shippingAddress.name}</p>
+                                            <p><strong>Address:</strong> {order.shippingAddress.address}</p>
+                                            <p><strong>Phone:</strong> {order.shippingAddress.phone}</p>
                                         </div>
                                         <div>
                                             <h4 className="font-semibold mb-2">Order Items</h4>
@@ -100,15 +99,13 @@ function OrderList() {
                                                     <TableRow>
                                                         <TableHead>Item</TableHead>
                                                         <TableHead>Qty</TableHead>
-                                                        <TableHead>Price</TableHead>
                                                     </TableRow>
                                                 </TableHeader>
                                                 <TableBody>
                                                 {order.items.map(item => (
                                                     <TableRow key={item.id}>
-                                                        <TableCell>{item.name} {item.size && `(${item.size})`}</TableCell>
+                                                        <TableCell>{item.name} {item.size && `(Size: ${item.size})`}</TableCell>
                                                         <TableCell>{item.quantity}</TableCell>
-                                                        <TableCell>${item.price.toFixed(2)}</TableCell>
                                                     </TableRow>
                                                 ))}
                                                 </TableBody>
@@ -117,7 +114,7 @@ function OrderList() {
                                          <div className="md:col-span-2">
                                             <h4 className="font-semibold mb-2">Update Status</h4>
                                              <div className="flex items-center gap-4">
-                                                <Select value={order.status} onValueChange={(newStatus: Order['status']) => handleStatusChange(order, newStatus)}>
+                                                <Select value={order.status || ''} onValueChange={(newStatus: Order['status']) => handleStatusChange(order, newStatus)}>
                                                     <SelectTrigger className="w-[180px]">
                                                         <SelectValue placeholder="Change status" />
                                                     </SelectTrigger>
