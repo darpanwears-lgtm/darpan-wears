@@ -5,7 +5,7 @@
  * Core Philosophy:
  * This ruleset implements a public access model where all users can read and write product information.
  * This is suitable for an application where there is no user authentication and the admin panel is public.
- * Orders can be created by anyone (guest checkout).
+ * Since orders are not stored in the database, there are no rules for guest orders.
  *
  */
 rules_version = '2';
@@ -18,14 +18,7 @@ service cloud.firestore {
     match /products/{productId} {
       allow read, write: if true;
     }
-    
-    /**
-     * @description Rules for the /guestOrders/{orderId} collection.
-     * Anyone can create an order (for guest checkout). Reading and updating is not allowed for security.
-     */
-    match /guestOrders/{orderId} {
-      allow create: if true;
-      allow read, write, list: if false;
-    }
   }
 }
+
+    

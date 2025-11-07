@@ -9,8 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useState } from 'react';
-import { addDoc, collection } from 'firebase/firestore';
-import { useFirestore } from '@/firebase/provider';
 import type { Product } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -40,8 +38,6 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const firestore = useFirestore();
-  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { name: '', address: '', phone: '', paymentMethod: 'COD' },
@@ -57,45 +53,14 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    if (!firestore) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: 'Could not connect to the database. Please try again.',
-      });
-      setIsSubmitting(false);
-      return;
-    }
 
     try {
-        const orderData = {
-          items: [{
-            id: product.id,
-            productId: product.id,
-            name: product.name,
-            price: product.price,
-            quantity: 1,
-            imageUrl: primaryImageUrl,
-            size: selectedSize || 'N/A'
-          }],
-          totalAmount: total,
-          status: 'Processing' as const,
-          orderDate: new Date().toISOString(),
-          shippingAddress: {
-            name: values.name,
-            address: values.address,
-            phone: values.phone,
-          },
-          orderStatus: 'Processing',
-        };
-        
-        const guestOrdersCollection = collection(firestore, 'guestOrders');
-        const docRef = await addDoc(guestOrdersCollection, orderData);
+        const orderId = `DW-${Date.now()}`;
         
         const whatsappMessageBody = `
 *New Order Received!*
 
-*Order ID:* ${docRef.id}
+*Order ID:* ${orderId}
 *Customer:* ${values.name}
 
 *Shipping Address:*
@@ -118,26 +83,23 @@ ${values.address}
         const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessageBody)}`;
         
         toast({
-            title: "Order Placed!",
+            title: "Redirecting to WhatsApp...",
             description: "Confirm your order on WhatsApp.",
         });
         
-        // This will redirect the current tab to WhatsApp
         if (typeof window !== 'undefined') {
             window.location.href = whatsappUrl;
         }
 
         onOpenChange(false);
-        // The page will navigate to WhatsApp, so the redirect below is a fallback 
-        // in case the user quickly returns to the browser.
-        router.push(`/order/${docRef.id}`);
+        router.push(`/order/${orderId}`);
 
     } catch (error) {
-        console.error("Error placing order:", error);
+        console.error("Error preparing WhatsApp message:", error);
         toast({
             variant: 'destructive',
             title: 'Order Failed',
-            description: 'Could not save your order. Please check your details and try again.',
+            description: 'Could not prepare your order for WhatsApp. Please try again.',
         });
     } finally {
       setIsSubmitting(false);
@@ -202,7 +164,7 @@ ${values.address}
                                 </DialogClose>
                                 <Button type="submit" className="w-full sm:w-auto" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }} disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                    {isSubmitting ? 'Placing Order...' : `Order via WhatsApp`}
+                                    {isSubmitting ? 'Preparing Order...' : `Order via WhatsApp`}
                                 </Button>
                             </DialogFooter>
                             </form>
@@ -236,3 +198,5 @@ ${values.address}
     </Dialog>
   );
 }
+
+    
