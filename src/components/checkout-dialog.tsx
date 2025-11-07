@@ -122,14 +122,15 @@ ${values.address}
             description: "Confirm your order on WhatsApp.",
         });
         
+        // This will redirect the current tab to WhatsApp
         if (typeof window !== 'undefined') {
             window.location.href = whatsappUrl;
         }
 
         onOpenChange(false);
-        setTimeout(() => {
-            router.push(`/order/${docRef.id}`);
-        }, 500);
+        // The page will navigate to WhatsApp, so the redirect below is a fallback 
+        // in case the user quickly returns to the browser.
+        router.push(`/order/${docRef.id}`);
 
     } catch (error) {
         console.error("Error placing order:", error);
@@ -201,7 +202,7 @@ ${values.address}
                                 </DialogClose>
                                 <Button type="submit" className="w-full sm:w-auto" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }} disabled={isSubmitting}>
                                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                                    {isSubmitting ? 'Placing Order...' : `Place Order`}
+                                    {isSubmitting ? 'Placing Order...' : `Order via WhatsApp`}
                                 </Button>
                             </DialogFooter>
                             </form>
