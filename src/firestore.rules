@@ -16,7 +16,7 @@
  * - Public read access to the /products collection to enable product browsing.
  * - Administrative privileges are determined by the presence of a document in the `/roles_admin/{userId}` collection.
  * - Customer can only access their own data in `/users/{userId}` and its subcollections.
- * - Admins have read and update access to all orders across all users.
+ * - Admins have read and update access to all orders across all users via collection group queries.
  *
  */
 rules_version = '2';
@@ -73,26 +73,29 @@ service cloud.firestore {
       allow list: if false; // Prevent listing all users
 
       /**
-       * @description Rules for the orders subcollection.
+       * @description Rules for the orders subcollection. This controls direct access.
        */
       match /orders/{orderId} {
         // Allow user to create and read their own orders.
-        allow create, get: if isOwner(userId);
+        allow create, get, list: if isOwner(userId);
         
-        // Admins can read any order and update any order's status.
-        // A collection group query for admins needs this rule.
-        allow list, get: if isSignedIn() && isAdmin();
-        
-        // Users can list their own orders.
-        allow list: if isOwner(userId);
+        // Admins can read or update a specific order they have the full path for.
+        allow get, update: if isSignedIn() && isAdmin();
 
         // User can update their own order to cancel or rate it.
-        // Admin can update any order (e.g., to change status).
-        allow update: if (isOwner(userId) && (
+        allow update: if isOwner(userId) && (
                           (request.resource.data.status == 'Cancelled' && resource.data.status == 'Processing')
                           || request.resource.data.keys().hasAll(['rating'])
-                        )) || (isSignedIn() && isAdmin());
+                        );
       }
+    }
+
+    /**
+     * @description Collection group rule for 'orders'. This allows admins to query across all users' orders.
+     */
+    match /{path=**}/orders/{orderId} {
+      // Admins can perform list (collection group query) and get operations on any order.
+      allow list, get: if isSignedIn() && isAdmin();
     }
   }
 }
