@@ -10,7 +10,8 @@ import { addDoc, collection, serverTimestamp, query, orderBy } from 'firebase/fi
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { generateColorFromString } from '@/lib/utils';
 import { SendHorizonal, Bot } from 'lucide-react';
-import { generateChatResponse, ChatInput } from '@/ai/flows/chat-flow';
+import { generateChatResponse } from '@/ai/flows/chat-flow';
+import type { ChatInput } from '@/ai/flows/chat-shared';
 import type { ChatMessage } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDoc } from '@/firebase/firestore/use-doc';

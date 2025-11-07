@@ -5,26 +5,15 @@
  * @fileOverview Provides an AI-powered chat functionality.
  *
  * - generateChatResponse - A function that generates a response from the AI based on chat history.
- * - ChatInput - The input type for the generateChatResponse function.
- * - ChatOutput - The return type for the generateChatResponse function.
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-import { ChatMessage } from '@/lib/types';
-
-export const ChatInputSchema = z.object({
-  history: z.array(z.object({
-    senderId: z.enum(['user', 'ai']),
-    text: z.string(),
-  })).describe("The history of the conversation."),
-});
-export type ChatInput = z.infer<typeof ChatInputSchema>;
-
-export const ChatOutputSchema = z.object({
-  text: z.string().describe("The AI's response."),
-});
-export type ChatOutput = z.infer<typeof ChatOutputSchema>;
+import {
+  ChatInputSchema,
+  ChatOutputSchema,
+  type ChatInput,
+  type ChatOutput,
+} from './chat-shared';
 
 const chatPrompt = ai.definePrompt({
   name: 'chatPrompt',
@@ -46,7 +35,6 @@ Here is the conversation history:
 AI:`,
 });
 
-
 const chatFlow = ai.defineFlow(
   {
     name: 'chatFlow',
@@ -56,12 +44,16 @@ const chatFlow = ai.defineFlow(
   async (input) => {
     const result = await chatPrompt(input);
     if (!result || !result.output) {
-      return { text: "I'm sorry, I'm having trouble responding right now. Please try again in a moment." };
+      return {
+        text: "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
+      };
     }
     return result.output;
   }
 );
 
-export async function generateChatResponse(input: ChatInput): Promise<ChatOutput> {
+export async function generateChatResponse(
+  input: ChatInput
+): Promise<ChatOutput> {
   return chatFlow(input);
 }
