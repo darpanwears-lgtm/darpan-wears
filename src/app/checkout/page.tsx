@@ -170,25 +170,22 @@ Total Amount: $${total.toFixed(2)}
         `.trim().replace(/^\s+/gm, '');
 
 
-        if (navigator.clipboard) {
-            await navigator.clipboard.writeText(message);
-            toast({
-              title: "Order Details Copied!",
-              description: "Redirecting to Instagram. Please paste the details in a DM.",
-            });
-        } else {
-            toast({
-              title: "Order Placed!",
-              description: "Could not copy details automatically. Please check your order history and contact us on Instagram.",
-            });
-        }
-
         const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
         const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
         localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
         
-        const instagramUrl = 'https://www.instagram.com/darpan_wear/?__pwa=1';
-        router.push(`/order/${docRef.id}?instagramUrl=${encodeURIComponent(instagramUrl)}`);
+        const whatsappNumber = '919332307996';
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+        
+        toast({
+            title: "Order Placed!",
+            description: "Redirecting to WhatsApp to confirm your order.",
+        });
+        
+        window.location.href = whatsappUrl;
+        // The user will be redirected, but we can still navigate to the order confirmation page in the background
+        // for when they return to the app.
+        router.push(`/order/${docRef.id}`);
 
     } catch (error) {
         console.error("Error placing order:", error);
@@ -303,3 +300,5 @@ export default function CheckoutPage() {
     </Suspense>
   )
 }
+
+    
