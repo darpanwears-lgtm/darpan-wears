@@ -15,6 +15,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AccountDialog } from './account-dialog';
 import { useState } from 'react';
 import { LoginDialog } from './login-dialog';
+import { generateColorFromString } from '@/lib/utils';
+
 
 export function Header() {
   const { user } = useUser();
@@ -45,6 +47,10 @@ export function Header() {
     }
   };
 
+  const userInitial = getInitials(userProfile?.name);
+  const avatarColor = userProfile?.name ? generateColorFromString(userProfile.name) : undefined;
+
+
   return (
     <>
       <header className="w-full border-b bg-background">
@@ -52,7 +58,7 @@ export function Header() {
           {userProfile && userProfile.name ? (
               <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
                   <Avatar className="h-8 w-8">
-                      <AvatarFallback>{getInitials(userProfile.name)}</AvatarFallback>
+                      <AvatarFallback style={{ backgroundColor: avatarColor, color: 'white' }}>{userInitial}</AvatarFallback>
                   </Avatar>
                   <span>{userProfile.name}</span>
               </Link>
@@ -86,7 +92,7 @@ export function Header() {
               <Button variant="ghost" size="sm" onClick={handleAccountClick}>
                 {userProfile && userProfile.name ? (
                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>{getInitials(userProfile.name)}</AvatarFallback>
+                      <AvatarFallback style={{ backgroundColor: avatarColor, color: 'white' }}>{userInitial}</AvatarFallback>
                   </Avatar>
                 ) : (
                   <User className="h-5 w-5" />
