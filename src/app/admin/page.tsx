@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth-context';
 import { ProductForm } from '@/components/admin/product-form';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
-import { useUser, useFirestore } from '@/firebase';
+import { useFirestore } from '@/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductList } from '@/components/admin/product-list';
 import { useToast } from '@/hooks/use-toast';
@@ -15,14 +15,11 @@ export default function AdminPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { isAdmin, isAuthLoading, logout } = useAuth();
-  const { isUserLoading: isFirebaseUserLoading } = useUser();
-  const firestore = useFirestore(); // Get firestore instance
+  const firestore = useFirestore();
 
   useEffect(() => {
-    // Wait until all loading is complete before checking auth status
-    if (isAuthLoading || isFirebaseUserLoading) return;
+    if (isAuthLoading) return;
     
-    // If auth is not loading and user is not an admin, redirect.
     if (!isAdmin) {
       toast({
         title: 'Access Denied',
@@ -31,7 +28,7 @@ export default function AdminPage() {
       });
       router.push('/');
     }
-  }, [isAdmin, isAuthLoading, isFirebaseUserLoading, router, toast]);
+  }, [isAdmin, isAuthLoading, router, toast]);
 
   const handleLogout = () => {
     logout();
@@ -42,8 +39,7 @@ export default function AdminPage() {
     router.push('/');
   }
 
-  // Render loading state if any of the dependencies are not ready
-  if (isAuthLoading || isFirebaseUserLoading || !isAdmin || !firestore) {
+  if (isAuthLoading || !isAdmin || !firestore) {
     return (
         <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
             <p>Verifying admin access...</p>

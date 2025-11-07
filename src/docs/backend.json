@@ -63,54 +63,12 @@
         "stockQuantity"
       ]
     },
-    "UserProfile": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User Profile",
-      "type": "object",
-      "description": "Stores customer profile information.",
-      "properties": {
-        "uid": {
-          "type": "string",
-          "description": "The user's unique ID from Firebase Auth."
-        },
-        "name": {
-          "type": "string",
-          "description": "The user's full name."
-        },
-        "email": {
-          "type": "string",
-          "format": "email",
-          "description": "The user's email address (optional)."
-        },
-        "address": {
-          "type": "string",
-          "description": "The user's shipping address."
-        },
-        "phone": {
-          "type": "string",
-          "description": "The user's phone number."
-        },
-        "photoURL": {
-            "type": "string",
-            "format": "uri",
-            "description": "The URL of the user's profile picture."
-        }
-      },
-      "required": [
-        "uid",
-        "name"
-      ]
-    },
     "Order": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Order",
       "type": "object",
       "description": "Represents a customer's order.",
       "properties": {
-        "userId": {
-          "type": "string",
-          "description": "The UID of the user who placed the order."
-        },
         "items": {
           "type": "array",
           "description": "An array of items included in the order.",
@@ -137,8 +95,8 @@
           "enum": ["Processing", "Shipped", "Delivered", "Cancelled"]
         },
         "orderDate": {
-          "type": "number",
-          "description": "The timestamp when the order was placed."
+          "type": "string",
+          "description": "The ISO timestamp when the order was placed."
         },
         "shippingAddress": {
           "type": "object",
@@ -149,24 +107,14 @@
             "phone": {"type": "string"}
           },
           "required": ["name", "address", "phone"]
-        },
-        "rating": {
-          "type": "number",
-          "description": "A rating from 1 to 5 given by the customer."
-        },
-        "review": {
-          "type": "string",
-          "description": "A text review from the customer."
         }
       },
-      "required": ["userId", "items", "totalAmount", "status", "orderDate", "shippingAddress"]
+      "required": ["items", "totalAmount", "status", "orderDate", "shippingAddress"]
     }
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous",
-      "google.com"
+      "password"
     ]
   },
   "firestore": {
@@ -195,23 +143,13 @@
         }
       },
       {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "UserProfile",
-          "schema": {
-            "$ref": "#/backend/entities/UserProfile"
-          },
-          "description": "Stores customer profile information, accessible only by the owning user."
-        }
-      },
-      {
-        "path": "/users/{userId}/orders/{orderId}",
+        "path": "/guestOrders/{orderId}",
         "definition": {
           "entityName": "Order",
           "schema": {
             "$ref": "#/backend/entities/Order"
           },
-          "description": "Stores order history for a specific user. Accessible only by the owning user."
+          "description": "Stores order history for guest checkouts. Accessible only by admins."
         }
       }
     ]

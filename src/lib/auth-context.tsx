@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
@@ -9,15 +10,11 @@ import {
     signOut, 
 } from 'firebase/auth';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
-import type { UserProfile } from './types';
-
 
 interface AdminAuthContextType {
   isAdmin: boolean;
   login: (password: string) => Promise<boolean>;
   logout: () => void;
-  emailLogin: (email: string, pass: string) => Promise<boolean>;
-  emailSignUp: (email: string, pass: string, name: string, phone: string) => Promise<boolean>;
   isAuthLoading: boolean;
 }
 
@@ -104,68 +101,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
   
-  const emailLogin = async (email: string, pass: string): Promise<boolean> => {
-    if (!auth) return false;
-    setIsAuthLoading(true);
-    try {
-        await signInWithEmailAndPassword(auth, email, pass);
-        setIsAuthLoading(false);
-        return true;
-    } catch (error) {
-        console.error("Email login failed:", error);
-        setIsAuthLoading(false);
-        return false;
-    }
-  };
-  
-  const emailSignUp = async (email: string, pass: string, name: string, phone: string): Promise<boolean> => {
-    if (!auth || !firestore) return false;
-    setIsAuthLoading(true);
-    try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-        const newUser = userCredential.user;
-
-        const profileData: UserProfile = {
-            uid: newUser.uid,
-            name: name,
-            email: newUser.email || '',
-            phone: phone,
-        };
-        
-        const userProfileRef = doc(firestore, 'users', newUser.uid);
-
-        setDoc(userProfileRef, profileData).catch(
-            (serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: userProfileRef.path,
-                    operation: 'create',
-                    requestResourceData: profileData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            }
-        );
-        
-        setIsAuthLoading(false);
-        return true;
-
-    } catch (error) {
-        console.error('Email sign-up failed:', error);
-        setIsAuthLoading(false);
-        return false;
-    }
-  }
-
-
   const logout = () => {
-    signOut(auth).then(() => {
-        setIsAdmin(false);
-        if (pathname.startsWith('/admin')) {
-            router.push('/');
-        }
-    });
+    // Only sign out if the current user is the admin
+    if (user && user.email === ADMIN_EMAIL) {
+        signOut(auth).then(() => {
+            setIsAdmin(false);
+            if (pathname.startsWith('/admin')) {
+                router.push('/');
+            }
+        });
+    }
   };
 
-  const value = { isAdmin, login, logout, isAuthLoading, emailLogin, emailSignUp };
+  const value = { isAdmin, login, logout, isAuthLoading };
 
   return (
     <AuthContext.Provider value={value}>

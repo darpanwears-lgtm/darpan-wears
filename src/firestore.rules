@@ -1,21 +1,16 @@
+
 /**
  * @fileoverview Firestore Security Rules for Darpan Wears Mobile Shop.
  *
  * Core Philosophy:
  * This ruleset implements a role-based access control system where all users can read product information,
  * but only users with a designated admin role can create, update, or delete products.
- * Customer can manage their own profile data and order history.
+ * Orders can be created by anyone (guest checkout), but can only be read or modified by admins.
  *
  * Data Structure:
  * - /products/{productId}: Stores publicly readable product information.
- * - /roles_admin/{userId}: Indicates admin privileges.
- * - /users/{userId}: Stores customer profile information.
- * - /users/{userId}/orders/{orderId}: Stores order history for a specific user.
- *
- * Key Security Decisions:
- * - Public read access to the /products collection to enable product browsing.
- * - Administrative privileges are determined by the presence of a document in the `/roles_admin/{userId}` collection.
- * - Customer can only access their own data in `/users/{userId}` and its subcollections.
+ * - /roles_admin/{userId}: Indicates admin privileges for a specific user ID.
+ * - /guestOrders/{orderId}: Stores orders from guest checkouts.
  *
  */
 rules_version = '2';
@@ -38,15 +33,6 @@ service cloud.firestore {
       return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
-    /**
-     * @description Checks if the user is the owner of the document.
-     * @param {string} userId - The user ID to check against the request's auth UID.
-     * @return {boolean} True if the user ID matches the request's auth UID, false otherwise.
-     */
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
    /**
      * @description Rules for the /products/{productId} collection. Allows read access to all users, but only admins can create, update, or delete products.
      */
@@ -64,32 +50,12 @@ service cloud.firestore {
     }
     
     /**
-     * @description Rules for the /users/{userId} collection and its subcollections.
+     * @description Rules for the /guestOrders/{orderId} collection.
+     * Anyone can create an order (for guest checkout), but only admins can view or manage them.
      */
-    match /users/{userId} {
-      // A user can create their own profile document.
-      allow create: if isOwner(userId);
-      // A user can read or update their own profile document.
-      allow read, update: if isOwner(userId);
-      // No one can list all users or delete a user profile directly.
-      allow list, delete: if false;
-
-      /**
-       * @description Rules for the orders subcollection. This controls direct access within a user's path.
-       */
-      match /orders/{orderId} {
-        // Allow user to create and read their own orders.
-        allow create, get, list: if isOwner(userId);
-        
-        // User can update their own order to cancel or rate it.
-        // Admin can update any order (e.g., to change status).
-        // This rule is needed for admins to update status via a direct path.
-        allow update: if (isOwner(userId) && (
-                          (request.resource.data.status == 'Cancelled' && resource.data.status == 'Processing')
-                          || request.resource.data.keys().hasAll(['rating', 'review'])
-                          || request.resource.data.keys().hasAll(['rating'])
-                        )) || (isSignedIn() && isAdmin());
-      }
+    match /guestOrders/{orderId} {
+      allow create: if true;
+      allow read, write, list: if isSignedIn() && isAdmin();
     }
   }
 }
