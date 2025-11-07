@@ -3,7 +3,6 @@
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collectionGroup, query, orderBy, doc, updateDoc, FirestoreError } from 'firebase/firestore';
 import type { Order } from '@/lib/types';
-import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -18,7 +17,7 @@ const statusOptions: Order['status'][] = ['Processing', 'Shipped', 'Delivered', 
 export function OrderList() {
     const firestore = useFirestore();
     const ordersQuery = useMemoFirebase(() => (firestore ? query(collectionGroup(firestore, 'orders'), orderBy('orderDate', 'desc')) : null), [firestore]);
-    const { data: orders, isLoading } = useCollection<Order>(ordersQuery);
+    const { data: orders, isLoading, error } = useCollection<Order>(ordersQuery);
     const { toast } = useToast();
 
     const handleStatusChange = async (order: Order, newStatus: Order['status']) => {
