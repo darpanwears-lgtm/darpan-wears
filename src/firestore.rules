@@ -16,7 +16,7 @@
  * - Public read access to the /products collection to enable product browsing.
  * - Administrative privileges are determined by the presence of a document in the `/roles_admin/{userId}` collection.
  * - Customer can only access their own data in `/users/{userId}` and its subcollections.
- * - Admins have read and update access to all orders across all users via collection group queries.
+ * - Admins have read and update access to all orders across all users via a collection group query.
  *
  */
 rules_version = '2';
@@ -36,7 +36,7 @@ service cloud.firestore {
      * @return {boolean} True if the user is an admin, false otherwise.
      */
     function isAdmin() {
-      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
     }
 
     /**
@@ -48,30 +48,31 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    /**
+     * @description Collection group rule for 'orders'. This allows admins to query across all users' orders.
+     * This rule must be at the top level to function correctly for collection group queries.
+     */
+    match /{path=**}/orders/{orderId} {
+      // Admins can perform list (collection group query) and get operations on any order.
+      allow list, get: if isAdmin();
+    }
+
    /**
      * @description Rules for the /products/{productId} collection. Allows read access to all users, but only admins can create, update, or delete products.
      */
     match /products/{productId} {
       allow get, list: if true;
-      allow write: if isSignedIn() && isAdmin();
+      allow write: if isAdmin();
     }
 
     /**
-     * @description Rules for the /roles_admin/{userId} collection. Only the user themselves can create/update their own admin role.
+     * @description Rules for the /roles_admin/{userId} collection. Only admins can modify roles.
      */
     match /roles_admin/{userId} {
-      allow get, write: if isOwner(userId);
+      allow read, write: if isAdmin();
       allow list: if false;
     }
     
-    /**
-     * @description Collection group rule for 'orders'. This allows admins to query across all users' orders.
-     */
-    match /{path=**}/orders/{orderId} {
-      // Admins can perform list (collection group query) and get operations on any order.
-      allow list, get: if isSignedIn() && isAdmin();
-    }
-
     /**
      * @description Rules for the /users/{userId} collection and its subcollections.
      */
@@ -81,20 +82,20 @@ service cloud.firestore {
       allow list: if false; // Prevent listing all users
 
       /**
-       * @description Rules for the orders subcollection. This controls direct access.
+       * @description Rules for the orders subcollection. This controls direct access within a user's path.
        */
       match /orders/{orderId} {
         // Allow user to create and read their own orders.
         allow create, get, list: if isOwner(userId);
         
-        // Admins can update a specific order they have the full path for.
-        allow update: if isSignedIn() && isAdmin();
-
         // User can update their own order to cancel or rate it.
-        allow update: if isOwner(userId) && (
+        // Admin can update any order (e.g., to change status).
+        // This rule is needed for admins to update status via a direct path.
+        allow update: if (isOwner(userId) && (
                           (request.resource.data.status == 'Cancelled' && resource.data.status == 'Processing')
+                          || request.resource.data.keys().hasAll(['rating', 'review'])
                           || request.resource.data.keys().hasAll(['rating'])
-                        );
+                        )) || isAdmin();
       }
     }
   }
