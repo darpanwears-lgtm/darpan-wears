@@ -57,8 +57,10 @@
     @apply border-border;
   }
   body {
-    @apply text-foreground;
-    background: linear-gradient(180deg, #ff7e5f, #feb47b, #86a8e7, #91eae4, hsl(var(--background)) 50%);
-    background-attachment: fixed;
+    @apply bg-background text-foreground;
+  }
+  
+  #all-products {
+     background: linear-gradient(180deg, #ff7e5f, #feb47b, #86a8e7, #91eae4, hsl(var(--background)) 50%);
   }
 }
