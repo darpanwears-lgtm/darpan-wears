@@ -9,10 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, doc, updateDoc } from 'firebase/firestore';
 import { useFirestore, FirestorePermissionError, errorEmitter, useUser } from '@/firebase';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import type { Product } from '@/lib/types';
 
 const productSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -25,12 +26,19 @@ const productSchema = z.object({
   productLink: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
 });
 
-export function AdminProductForm() {
+interface ProductFormProps {
+    product?: Product;
+    onSuccess?: () => void;
+}
+
+export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
   const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  const isEditMode = !!product;
+
   const form = useForm<z.infer<typeof productSchema>>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -45,6 +53,22 @@ export function AdminProductForm() {
     },
   });
 
+  useEffect(() => {
+    if (isEditMode) {
+      form.reset({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        category: product.category,
+        availableSizes: product.availableSizes?.map(s => ({ value: s })) || [],
+        stockQuantity: product.stockQuantity,
+        imageUrls: product.imageUrls.map(url => ({ value: url })),
+        productLink: product.productLink || '',
+      });
+    }
+  }, [product, isEditMode, form]);
+
+
   const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
     control: form.control,
     name: "availableSizes",
@@ -57,14 +81,12 @@ export function AdminProductForm() {
 
   async function onSubmit(values: z.infer<typeof productSchema>) {
     if (!firestore || !user) {
-        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to add a product.'});
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to manage products.'});
         return;
     }
     setIsSubmitting(true);
     
     try {
-      const productsCollection = collection(firestore, 'products');
-      
       const productData = {
         name: values.name,
         description: values.description,
@@ -76,26 +98,47 @@ export function AdminProductForm() {
         productLink: values.productLink,
       };
 
-      addDoc(productsCollection, productData).catch(async (serverError) => {
-          const permissionError = new FirestorePermissionError({
-              path: productsCollection.path,
-              operation: 'create',
-              requestResourceData: productData,
+      if (isEditMode && product.id) {
+          const productRef = doc(firestore, 'products', product.id);
+          updateDoc(productRef, productData).catch(async (serverError) => {
+              const permissionError = new FirestorePermissionError({
+                  path: productRef.path,
+                  operation: 'update',
+                  requestResourceData: productData,
+              });
+              errorEmitter.emit('permission-error', permissionError);
           });
-          errorEmitter.emit('permission-error', permissionError);
-      });
-      
-      toast({
-        title: 'Product Added',
-        description: `${values.name} has been successfully added to the store.`,
-      });
-      form.reset();
+          toast({
+            title: 'Product Updated',
+            description: `${values.name} has been successfully updated.`,
+          });
+
+      } else {
+         const productsCollection = collection(firestore, 'products');
+         addDoc(productsCollection, productData).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: productsCollection.path,
+                operation: 'create',
+                requestResourceData: productData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
+        
+        toast({
+          title: 'Product Added',
+          description: `${values.name} has been successfully added to the store.`,
+        });
+        form.reset();
+      }
+
+      if(onSuccess) onSuccess();
+
     } catch (error) {
-      console.error("Error adding product:", error);
+      console.error("Error submitting product:", error);
       toast({
         variant: 'destructive',
         title: 'Uh oh! Something went wrong.',
-        description: 'Could not add the product. Please try again.',
+        description: `Could not ${isEditMode ? 'update' : 'add'} the product. Please try again.`,
       });
     } finally {
         setIsSubmitting(false);
@@ -105,8 +148,8 @@ export function AdminProductForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add New Product</CardTitle>
-        <CardDescription>Fill out the details below to add a new product to your store.</CardDescription>
+        <CardTitle>{isEditMode ? "Edit Product" : "Add New Product"}</CardTitle>
+        <CardDescription>{isEditMode ? "Update the details for this product." : "Fill out the details below to add a new product to your store."}</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -187,7 +230,7 @@ export function AdminProductForm() {
             
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSubmitting ? 'Adding Product...' : 'Add Product'}
+              {isSubmitting ? (isEditMode ? 'Saving Changes...' : 'Adding Product...') : (isEditMode ? 'Save Changes' : 'Add Product')}
             </Button>
           </form>
         </Form>

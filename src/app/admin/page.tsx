@@ -1,11 +1,13 @@
 'use client';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { AdminProductForm } from './add-product-form';
+import { ProductForm } from './product-form';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useUser } from '@/firebase';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ProductList } from './product-list';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -38,7 +40,19 @@ export default function AdminPage() {
             Logout
         </Button>
       </div>
-      <AdminProductForm />
+      
+       <Tabs defaultValue="manage-products">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="manage-products">Manage Products</TabsTrigger>
+          <TabsTrigger value="add-product">Add Product</TabsTrigger>
+        </TabsList>
+        <TabsContent value="manage-products" className="mt-6">
+            <ProductList />
+        </TabsContent>
+        <TabsContent value="add-product" className="mt-6">
+          <ProductForm />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
