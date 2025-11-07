@@ -19,7 +19,7 @@ import { LoginDialog } from './login-dialog';
 import { generateColorFromString } from '@/lib/utils';
 import { AdminLoginDialog } from './admin-login-dialog';
 import { useAuth } from '@/lib/auth-context';
-import { AdminPanelDialog } from './admin-panel-dialog';
+import { useRouter } from 'next/navigation';
 
 
 export function Header() {
@@ -29,7 +29,7 @@ export function Header() {
   const [isAccountDialogOpen, setIsAccountDialogOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isAdminLoginDialogOpen, setIsAdminLoginDialogOpen] = useState(false);
-  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
+  const router = useRouter();
 
   const userProfileRef = useMemoFirebase(
     () => (user && firestore ? doc(firestore, 'users', user.uid) : null),
@@ -56,7 +56,7 @@ export function Header() {
 
   const handleAdminClick = () => {
     if (isAdmin) {
-      setIsAdminPanelOpen(true);
+      router.push('/admin');
     } else {
       setIsAdminLoginDialogOpen(true);
     }
@@ -125,15 +125,13 @@ export function Header() {
       {user && <AccountDialog open={isAccountDialogOpen} onOpenChange={setIsAccountDialogOpen} />}
       {!user && <LoginDialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen} />}
       
-      {isAdmin ? (
-        <AdminPanelDialog open={isAdminPanelOpen} onOpenChange={setIsAdminPanelOpen} />
-      ) : (
+      {!isAdmin && (
         <AdminLoginDialog 
           open={isAdminLoginDialogOpen} 
           onOpenChange={setIsAdminLoginDialogOpen} 
           onLoginSuccess={() => {
             setIsAdminLoginDialogOpen(false);
-            setIsAdminPanelOpen(true);
+            router.push('/admin');
           }} 
         />
       )}

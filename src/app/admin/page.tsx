@@ -3,12 +3,12 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
-import { ProductForm } from './product-form';
+import { ProductForm } from '@/components/admin/product-form';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ProductList } from './product-list';
+import { ProductList } from '@/components/admin/product-list';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminPage() {
@@ -33,6 +33,15 @@ export default function AdminPage() {
     }
   }, [isAdmin, isAuthLoading, isFirebaseUserLoading, router, toast]);
 
+  const handleLogout = () => {
+    logout();
+    toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out of the admin panel."
+    });
+    router.push('/');
+  }
+
   // Render loading state if any of the dependencies are not ready
   if (isAuthLoading || isFirebaseUserLoading || !isAdmin || !firestore) {
     return (
@@ -46,7 +55,7 @@ export default function AdminPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold font-headline">Admin Panel</h1>
-        <Button variant="ghost" onClick={logout}>
+        <Button variant="ghost" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             Logout
         </Button>
