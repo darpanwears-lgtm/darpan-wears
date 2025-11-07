@@ -30,7 +30,9 @@ export function InstagramPopup({ open, onOpenChange, onFollow }: InstagramPopupP
         localStorage.setItem('featuredInstagramUser', username);
     }
     onFollow(); // This will set the cookie and close the popup
-    window.location.reload(); // Reload to show the footer
+    if (typeof window !== 'undefined') {
+        window.location.reload(); // Reload to show the footer
+    }
   };
 
   const handleSkip = () => {
