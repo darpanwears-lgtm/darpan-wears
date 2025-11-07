@@ -99,7 +99,7 @@ function ProfileTab() {
           </div>
           <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
-              <Input id="email" name="email" type="email" value={profile.email || ''} onChange={handleInputChange} disabled/>
+              <Input id="email" name="email" type="email" value={profile.email || ''} onChange={handleInputChange} />
           </div>
            <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
@@ -171,10 +171,10 @@ function OrdersTab() {
                                 <CardDescription>Placed on {format(new Date(order.orderDate), 'PPP')}</CardDescription>
                             </div>
                             <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                order.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                                order.orderStatus === 'Delivered' ? 'bg-green-100 text-green-800' :
+                                order.orderStatus === 'Cancelled' ? 'bg-red-100 text-red-800' :
                                 'bg-blue-100 text-blue-800'
-                            }`}>{order.status}</div>
+                            }`}>{order.orderStatus}</div>
                         </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
@@ -188,7 +188,7 @@ function OrdersTab() {
                         </ul>
                         <div className="font-bold text-right">Total: ${order.totalAmount.toFixed(2)}</div>
                          <div className="flex justify-end items-center gap-2 pt-4 border-t">
-                            {order.status === 'Processing' && (
+                            {order.orderStatus === 'Processing' && (
                                 <AlertDialog>
                                     <AlertDialogTrigger asChild>
                                         <Button variant="destructive" size="sm"><X className="mr-1 h-4 w-4" />Cancel Order</Button>
@@ -202,7 +202,7 @@ function OrdersTab() {
                                     </AlertDialogContent>
                                 </AlertDialog>
                             )}
-                             {order.status === 'Delivered' && (
+                             {order.orderStatus === 'Delivered' && (
                                <div className="flex items-center gap-1">
                                  {[1,2,3,4,5].map(star => (
                                    <Star key={star} className={`cursor-pointer h-5 w-5 ${order.rating && order.rating >= star ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`} onClick={() => handleRateOrder(order.id, star)}/>
