@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,12 +11,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { useUser, useAuth as useFirebaseAuth } from '@/firebase';
+import { useUser, useAuth as useFirebaseAuth, useFirestore } from '@/firebase';
 import { signInAnonymously } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email." }),
+  email: z.string().email({ message: "Please enter a valid email." }).or(z.literal('')).optional(),
   name: z.string().min(2, { message: "Name is required."}),
   address: z.string().min(5, { message: "Address is required."}),
   phone: z.string().min(10, { message: "Phone number is required."}),
@@ -27,6 +27,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const auth = useFirebaseAuth();
+  const firestore = useFirestore();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -36,7 +37,7 @@ export default function LoginPage() {
   });
   
   useEffect(() => {
-    // If user is already logged in (not anonymous), redirect to account
+    // If user is already logged in (not anonymous) and has a name, redirect to account
     if (!isUserLoading && user && !user.isAnonymous) {
       router.push('/account');
     }
@@ -44,6 +45,15 @@ export default function LoginPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
+    if (!auth || !firestore) {
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Firebase is not ready. Please try again in a moment.",
+        });
+        setIsSubmitting(false);
+        return;
+    }
     try {
         let currentUser = auth.currentUser;
         if (!currentUser) {
@@ -51,25 +61,23 @@ export default function LoginPage() {
             currentUser = userCredential.user;
         }
         
-        // Here you would typically link the anonymous account with an email/password
-        // or other provider, and save the user profile.
-        // For this simple case, we'll just save the data to localStorage and navigate.
-        
         const userProfile = {
             uid: currentUser.uid,
-            ...values
+            name: values.name,
+            address: values.address,
+            phone: values.phone,
+            email: values.email || '',
         };
-
-        // In a real app, you'd save this to Firestore
-        // For now, we'll simulate it.
-        console.log("User profile to save:", userProfile);
+        
+        const userProfileRef = doc(firestore, 'users', currentUser.uid);
+        await setDoc(userProfileRef, userProfile, { merge: true });
         
         toast({
             title: "Login Successful",
             description: "Your information has been saved.",
         });
         
-        router.push('/account');
+        router.push('/');
 
     } catch (error) {
         console.error("Login failed:", error);
@@ -112,7 +120,7 @@ export default function LoginPage() {
               )} />
                <FormField control={form.control} name="email" render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email (Optional)</FormLabel>
                   <FormControl>
                     <Input type="email" placeholder="you@example.com" {...field} />
                   </FormControl>

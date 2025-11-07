@@ -53,6 +53,39 @@
         "availableSizes",
         "stockQuantity"
       ]
+    },
+    "UserProfile": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User Profile",
+      "type": "object",
+      "description": "Stores customer profile information.",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user's unique ID from Firebase Auth."
+        },
+        "name": {
+          "type": "string",
+          "description": "The user's full name."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address (optional)."
+        },
+        "address": {
+          "type": "string",
+          "description": "The user's shipping address."
+        },
+        "phone": {
+          "type": "string",
+          "description": "The user's phone number."
+        }
+      },
+      "required": [
+        "uid",
+        "name"
+      ]
     }
   },
   "auth": {
@@ -70,13 +103,7 @@
           "schema": {
             "$ref": "#/backend/entities/Product"
           },
-          "description": "Stores product information. Accessible for reading by all users (for product browsing).",
-          "params": [
-            {
-              "name": "productId",
-              "description": "The unique identifier for the product."
-            }
-          ]
+          "description": "Stores product information. Accessible for reading by all users (for product browsing)."
         }
       },
       {
@@ -84,18 +111,24 @@
         "definition": {
           "entityName": "adminRole",
           "schema": {
-            "$ref": "#/backend/entities/Product"
+             "type": "object",
+             "properties": {
+                "isAdmin": { "type": "boolean" }
+             }
           },
-          "description": "Collection to store admin roles. The existence of a document with the user's ID grants admin privileges.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier for the user (UID)."
-            }
-          ]
+          "description": "Collection to store admin roles. The existence of a document with the user's ID grants admin privileges."
+        }
+      },
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "UserProfile",
+          "schema": {
+            "$ref": "#/backend/entities/UserProfile"
+          },
+          "description": "Stores customer profile information, accessible only by the owning user."
         }
       }
-    ],
-    "reasoning": "This design prioritizes security and scalability for the Darpan Wears Mobile Shop. It separates product data from administrative functions, ensuring that product browsing is efficient and secure, while administrative actions require appropriate authorization. The key is the segregation of product data from admin roles and data. Products are stored in a root-level `products` collection, accessible for reading by all users (for browsing). The admin panel functionality, which includes adding, updating, and deleting products, is controlled through a dedicated `roles_admin` collection. A user's UID in this collection indicates administrative privileges. Authorization Independence is achieved by relying solely on the presence of a user's UID in the `roles_admin` collection, without needing to read any product data to determine admin rights. This approach ensures atomic operations and easy debugging. This structure supports the required QAPs because list operations are secure as the products collection contains only product data with a homogenous security posture, so no filtering is needed."
+    ]
   }
 }
