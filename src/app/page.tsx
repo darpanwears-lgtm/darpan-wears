@@ -17,6 +17,7 @@ import { FilterSheet } from '@/components/filter-sheet';
 import { Search } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
+import { HowToOrderDialog } from '@/components/how-to-order-dialog';
 
 const heroImages = [
     {
@@ -133,9 +134,12 @@ export default function Home() {
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold font-headline mb-4 leading-tight">
             Welcome to Darpan Wears
           </h1>
-          <Button asChild size="lg" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }}>
-            <Link href="#all-products">Shop Now</Link>
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4">
+              <Button asChild size="lg" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }}>
+                <Link href="#all-products">Shop Now</Link>
+              </Button>
+              <HowToOrderDialog />
+          </div>
         </div>
       </section>
 
