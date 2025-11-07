@@ -15,6 +15,16 @@ import { doc } from 'firebase/firestore';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from "@/components/ui/card"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
+} from "@/components/ui/carousel"
+
 
 export default function ProductPage({ params }: { params: { id: string } }) {
   const { toast } = useToast();
@@ -29,6 +39,23 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   const [selectedSize, setSelectedSize] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
+
+  const [api, setApi] = useState<CarouselApi>()
+  const [current, setCurrent] = useState(0)
+  const [count, setCount] = useState(0)
+ 
+  useEffect(() => {
+    if (!api) {
+      return
+    }
+ 
+    setCount(api.scrollSnapList().length)
+    setCurrent(api.selectedScrollSnap())
+ 
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap())
+    })
+  }, [api])
 
   useEffect(() => {
     if (product) {
@@ -75,20 +102,34 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     router.push(checkoutUrl);
   };
   
-  const primaryImageUrl = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : '/placeholder.png';
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-        <div className="aspect-square w-full overflow-hidden rounded-lg bg-secondary">
-          <Image
-            src={primaryImageUrl}
-            alt={product.name}
-            width={600}
-            height={600}
-            className="w-full h-full object-cover"
-            data-ai-hint={product.imageHint}
-          />
+        <div>
+           <Carousel setApi={setApi} className="w-full">
+            <CarouselContent>
+              {product.imageUrls.map((url, index) => (
+                <CarouselItem key={index}>
+                  <Card>
+                    <CardContent className="relative flex aspect-square items-center justify-center p-0">
+                       <Image
+                            src={url}
+                            alt={`${product.name} image ${index + 1}`}
+                            fill
+                            className="object-contain rounded-lg"
+                            data-ai-hint={product.imageHint}
+                        />
+                    </CardContent>
+                  </Card>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
+           <div className="py-2 text-center text-sm text-muted-foreground">
+            Slide {current + 1} of {count}
+          </div>
         </div>
         <div className="flex flex-col justify-center">
           <h1 className="text-3xl lg:text-4xl font-bold mb-2 font-headline">{product.name}</h1>
