@@ -5,22 +5,18 @@
  * Core Philosophy:
  * This ruleset implements a role-based access control system where all users can read product information,
  * but only users with a designated admin role can create, update, or delete products.
- * Customer can manage their own profile data, order history, and chat history.
- * Admins can manage all orders.
+ * Customer can manage their own profile data and order history.
  *
  * Data Structure:
  * - /products/{productId}: Stores publicly readable product information.
  * - /roles_admin/{userId}: Indicates admin privileges.
  * - /users/{userId}: Stores customer profile information.
  * - /users/{userId}/orders/{orderId}: Stores order history for a specific user.
- * - /chats/{userId}/messages/{messageId}: Stores chat history for a specific user with the AI.
  *
  * Key Security Decisions:
  * - Public read access to the /products collection to enable product browsing.
  * - Administrative privileges are determined by the presence of a document in the `/roles_admin/{userId}` collection.
- * - Customer can only access their own data in `/users/{userId}` and its subcollections, and their own chat history.
- * - Admins have read access to all orders across all users via a collection group query.
- * - AI chat flows (server-side) have elevated privileges to write AI responses.
+ * - Customer can only access their own data in `/users/{userId}` and its subcollections.
  *
  */
 rules_version = '2';
@@ -51,13 +47,13 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-    
-    /**
+
+   /**
      * @description Rules for the /products/{productId} collection. Allows read access to all users, but only admins can create, update, or delete products.
      */
     match /products/{productId} {
       allow get, list: if true;
-      allow write: if isAdmin();
+      allow write: if isSignedIn() && isAdmin();
     }
 
     /**
@@ -74,7 +70,8 @@ service cloud.firestore {
     match /users/{userId} {
       // Users can only read and write their own profile document.
       allow read, write: if isOwner(userId);
-      allow list: if false; // Prevent listing all users
+      // Admins can list all user profiles.
+      allow list: if isAdmin();
 
       /**
        * @description Rules for the orders subcollection. This controls direct access within a user's path.
@@ -90,28 +87,8 @@ service cloud.firestore {
                           (request.resource.data.status == 'Cancelled' && resource.data.status == 'Processing')
                           || request.resource.data.keys().hasAll(['rating', 'review'])
                           || request.resource.data.keys().hasAll(['rating'])
-                        )) || isAdmin();
+                        )) || (isSignedIn() && isAdmin());
       }
-    }
-
-    /**
-     * @description Rules for the chat messages collection.
-     */
-    match /chats/{userId}/messages/{messageId} {
-        // Users can read and write to their own chat channel.
-        allow read, write: if isOwner(userId);
-        
-        // Admins can read, write, and list messages in any chat.
-        allow list, get, write: if isAdmin();
-    }
-
-
-    /**
-     * @description Collection group rule for 'orders'. This allows admins to query across all users' orders.
-     */
-    match /{path=**}/orders/{orderId} {
-      // Admins can perform list (collection group query) and get operations on any order.
-      allow list, get: if isAdmin();
     }
   }
 }
