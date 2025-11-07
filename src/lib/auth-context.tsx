@@ -110,35 +110,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthLoading(true);
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const gUser = result.user;
-      const userProfileRef = doc(firestore, 'users', gUser.uid);
+        const result = await signInWithPopup(auth, provider);
+        const gUser = result.user;
+        const userProfileRef = doc(firestore, 'users', gUser.uid);
 
-      const profileData: UserProfile = {
-        uid: gUser.uid,
-        name: gUser.displayName || 'New User',
-        email: gUser.email || '',
-        photoURL: gUser.photoURL || '',
-      };
+        // Check if the user document already exists
+        const docSnap = await getDoc(userProfileRef);
 
-      // Non-blocking write with proper error handling
-      setDoc(userProfileRef, profileData, { merge: true }).catch(
-        (serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: userProfileRef.path,
-            operation: 'write',
-            requestResourceData: profileData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
+        let profileData: UserProfile;
+
+        if (docSnap.exists()) {
+            // User exists, merge new data with existing data
+            const existingData = docSnap.data() as UserProfile;
+            profileData = {
+                ...existingData,
+                name: gUser.displayName || existingData.name || 'New User',
+                email: gUser.email || existingData.email,
+                photoURL: gUser.photoURL || existingData.photoURL || '',
+                uid: gUser.uid,
+            };
+        } else {
+            // New user, create a new profile
+            profileData = {
+                uid: gUser.uid,
+                name: gUser.displayName || 'New User',
+                email: gUser.email || '',
+                photoURL: gUser.photoURL || '',
+            };
         }
-      );
 
-      setIsAuthLoading(false);
-      return true;
+        // Use a non-blocking write with proper error handling
+        setDoc(userProfileRef, profileData, { merge: true }).catch(
+            (serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: userProfileRef.path,
+                    operation: 'write',
+                    requestResourceData: profileData,
+                });
+                // This will emit the error to be caught by the listener
+                // without blocking the sign-in flow.
+                errorEmitter.emit('permission-error', permissionError);
+                // Even if the write fails, we can consider login successful
+                // as auth itself succeeded. The listener will handle the error.
+            }
+        );
+
+        setIsAuthLoading(false);
+        return true; // Return true because authentication was successful
+
     } catch (error) {
-      console.error('Google sign-in failed:', error);
-      setIsAuthLoading(false);
-      return false;
+        console.error('Google sign-in failed:', error);
+        setIsAuthLoading(false);
+        return false;
     }
   };
 
