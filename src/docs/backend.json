@@ -113,9 +113,7 @@
     }
   },
   "auth": {
-    "providers": [
-      "password"
-    ]
+    "providers": []
   },
   "firestore": {
     "structure": [
@@ -127,19 +125,6 @@
             "$ref": "#/backend/entities/Product"
           },
           "description": "Stores product information. Accessible for reading by all users (for product browsing)."
-        }
-      },
-      {
-        "path": "/roles_admin/{userId}",
-        "definition": {
-          "entityName": "adminRole",
-          "schema": {
-             "type": "object",
-             "properties": {
-                "isAdmin": { "type": "boolean" }
-             }
-          },
-          "description": "Collection to store admin roles. The existence of a document with the user's ID grants admin privileges."
         }
       },
       {

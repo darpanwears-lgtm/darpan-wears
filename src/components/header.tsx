@@ -7,25 +7,9 @@ import { Button } from '@/components/ui/button';
 import { FacebookIcon } from './icons/facebook';
 import { WhatsAppIcon } from './icons/whatsapp';
 import Image from 'next/image';
-import { useState } from 'react';
-import { AdminLoginDialog } from './admin-login-dialog';
-import { useAuth } from '@/lib/auth-context';
-import { useRouter } from 'next/navigation';
 
 
 export function Header() {
-  const { isAdmin } = useAuth();
-  const [isAdminLoginDialogOpen, setIsAdminLoginDialogOpen] = useState(false);
-  const router = useRouter();
-  
-  const handleAdminClick = () => {
-    if (isAdmin) {
-      router.push('/admin');
-    } else {
-      setIsAdminLoginDialogOpen(true);
-    }
-  };
-
   return (
     <>
       <header className="w-full border-b bg-background">
@@ -55,25 +39,16 @@ export function Header() {
                   <span className="sr-only">WhatsApp</span>
                 </Button>
               </Link>
-              <Button variant="ghost" size="sm" onClick={handleAdminClick}>
-                <KeyRound className="h-5 w-5" />
-                <span className="sr-only">Admin</span>
+              <Button asChild variant="ghost" size="sm">
+                <Link href="/admin">
+                    <KeyRound className="h-5 w-5" />
+                    <span className="sr-only">Admin</span>
+                </Link>
               </Button>
             </div>
           </div>
         </div>
       </header>
-      
-      {!isAdmin && (
-        <AdminLoginDialog 
-          open={isAdminLoginDialogOpen} 
-          onOpenChange={setIsAdminLoginDialogOpen} 
-          onLoginSuccess={() => {
-            setIsAdminLoginDialogOpen(false);
-            router.push('/admin');
-          }} 
-        />
-      )}
     </>
   );
 }

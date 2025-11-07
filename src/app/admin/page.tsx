@@ -1,60 +1,15 @@
 
 'use client';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth-context';
+
 import { ProductForm } from '@/components/admin/product-form';
-import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
-import { useFirestore } from '@/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductList } from '@/components/admin/product-list';
-import { useToast } from '@/hooks/use-toast';
 
 export default function AdminPage() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const { isAdmin, isAuthLoading, logout } = useAuth();
-  const firestore = useFirestore();
-
-  useEffect(() => {
-    if (isAuthLoading) return;
-    
-    if (!isAdmin) {
-      toast({
-        title: 'Access Denied',
-        description: 'You must be an admin to view this page.',
-        variant: 'destructive',
-      });
-      router.push('/');
-    }
-  }, [isAdmin, isAuthLoading, router, toast]);
-
-  const handleLogout = () => {
-    logout();
-    toast({
-        title: "Logged Out",
-        description: "You have been successfully logged out of the admin panel."
-    });
-    router.push('/');
-  }
-
-  if (isAuthLoading || !isAdmin || !firestore) {
-    return (
-        <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
-            <p>Verifying admin access...</p>
-        </div>
-    );
-  }
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold font-headline">Admin Panel</h1>
-        <Button variant="ghost" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" />
-            Logout
-        </Button>
       </div>
       
        <Tabs defaultValue="manage-products">

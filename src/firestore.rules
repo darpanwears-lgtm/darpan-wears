@@ -3,59 +3,29 @@
  * @fileoverview Firestore Security Rules for Darpan Wears Mobile Shop.
  *
  * Core Philosophy:
- * This ruleset implements a role-based access control system where all users can read product information,
- * but only users with a designated admin role can create, update, or delete products.
- * Orders can be created by anyone (guest checkout), but can only be read or modified by admins.
- *
- * Data Structure:
- * - /products/{productId}: Stores publicly readable product information.
- * - /roles_admin/{userId}: Indicates admin privileges for a specific user ID.
- * - /guestOrders/{orderId}: Stores orders from guest checkouts.
+ * This ruleset implements a public access model where all users can read and write product information.
+ * This is suitable for an application where there is no user authentication and the admin panel is public.
+ * Orders can be created by anyone (guest checkout).
  *
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /**
-     * @description Checks if the user is signed in.
-     * @return {boolean} True if the user is signed in, false otherwise.
-     */
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    /**
-     * @description Checks if the user is an admin based on the document at /roles_admin/{userId}.
-     * @return {boolean} True if the user is an admin, false otherwise.
-     */
-    function isAdmin() {
-      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
-    }
-
    /**
-     * @description Rules for the /products/{productId} collection. Allows read access to all users, but only admins can create, update, or delete products.
+     * @description Rules for the /products/{productId} collection. Allows public read and write access to all users.
      */
     match /products/{productId} {
-      allow get, list: if true;
-      allow write: if isSignedIn() && isAdmin();
-    }
-
-    /**
-     * @description Rules for the /roles_admin/{userId} collection. Only admins can modify roles.
-     */
-    match /roles_admin/{userId} {
-      allow read, write: if isAdmin();
-      allow list: if isAdmin();
+      allow read, write: if true;
     }
     
     /**
      * @description Rules for the /guestOrders/{orderId} collection.
-     * Anyone can create an order (for guest checkout), but only admins can view or manage them.
+     * Anyone can create an order (for guest checkout). Reading and updating is not allowed for security.
      */
     match /guestOrders/{orderId} {
       allow create: if true;
-      allow read, write, list: if isSignedIn() && isAdmin();
+      allow read, write, list: if false;
     }
   }
 }

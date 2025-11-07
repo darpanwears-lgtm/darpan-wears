@@ -27,14 +27,13 @@ const productSchema = z.object({
 });
 
 interface ProductFormProps {
-    product?: Product;
+    product?: Product | null; // Allow product to be null
     onSuccess?: () => void;
 }
 
 export function ProductForm({ product, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
   const firestore = useFirestore();
-  const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const isEditMode = !!product;
@@ -65,6 +64,17 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         imageUrls: product.imageUrls?.map(url => ({ value: url })) || [{ value: '' }],
         productLink: product.productLink || '',
       });
+    } else {
+        form.reset({
+            name: '',
+            description: '',
+            price: 0,
+            category: '',
+            availableSizes: [{value: 'S'}, {value: 'M'}, {value: 'L'}],
+            stockQuantity: 1,
+            imageUrls: [{ value: '' }],
+            productLink: '',
+        })
     }
   }, [product, isEditMode, form]);
 
@@ -80,8 +90,8 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   });
 
   async function onSubmit(values: z.infer<typeof productSchema>) {
-    if (!firestore || !user) {
-        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to manage products.'});
+    if (!firestore) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Database not available.'});
         return;
     }
     setIsSubmitting(true);
@@ -98,16 +108,9 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         productLink: values.productLink,
       };
 
-      if (isEditMode && product.id) {
+      if (isEditMode && product?.id) {
           const productRef = doc(firestore, 'products', product.id);
-          updateDoc(productRef, productData).catch(async (serverError) => {
-              const permissionError = new FirestorePermissionError({
-                  path: productRef.path,
-                  operation: 'update',
-                  requestResourceData: productData,
-              });
-              errorEmitter.emit('permission-error', permissionError);
-          });
+          await updateDoc(productRef, productData);
           toast({
             title: 'Product Updated',
             description: `${values.name} has been successfully updated.`,
@@ -115,14 +118,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
 
       } else {
          const productsCollection = collection(firestore, 'products');
-         addDoc(productsCollection, productData).catch(async (serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: productsCollection.path,
-                operation: 'create',
-                requestResourceData: productData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        });
+         await addDoc(productsCollection, productData);
         
         toast({
           title: 'Product Added',
