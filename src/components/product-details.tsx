@@ -5,13 +5,11 @@ import { useState, useEffect } from 'react';
 import * as React from 'react';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import type { Product } from '@/lib/types';
 import { DialogClose, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useRouter } from 'next/navigation';
 import { ScrollArea } from './ui/scroll-area';
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -24,19 +22,18 @@ import {
 } from "@/components/ui/carousel"
 import { ImageLightbox } from './image-lightbox';
 import Link from 'next/link';
+import { CheckoutDialog } from './checkout-dialog';
 
 interface ProductDetailsProps {
     product: Product;
 }
 
 export function ProductDetails({ product }: ProductDetailsProps) {
-  const { toast } = useToast();
-  const router = useRouter();
-
   const [selectedSize, setSelectedSize] = useState<string | undefined>(
     product?.availableSizes ? product.availableSizes[0] : undefined
   );
   const [error, setError] = useState<string | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
@@ -61,16 +58,16 @@ export function ProductDetails({ product }: ProductDetailsProps) {
   }
 
   const handleBuyNow = () => {
-     if (product.availableSizes && !selectedSize) {
+     if (product.availableSizes && product.availableSizes.length > 0 && !selectedSize) {
       setError('Please select a size.');
       return;
     }
     setError(null);
-    const checkoutUrl = `/checkout?productId=${product.id}&size=${selectedSize || ''}`;
-    router.push(checkoutUrl);
+    setIsCheckoutOpen(true);
   }
 
   return (
+    <>
     <ScrollArea className="max-h-[85vh]">
         <DialogHeader>
           <DialogTitle className="sr-only">{product.name}</DialogTitle>
@@ -149,13 +146,22 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                         <Button size="lg" variant="outline" className="w-full">Back</Button>
                       </DialogClose>
                     )}
-                    <DialogClose asChild>
-                        <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }} className="w-full">Buy Now</Button>
-                    </DialogClose>
+                    
+                    <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }} className="w-full">Buy Now</Button>
+                    
                 </div>
             </div>
         </div>
     </ScrollArea>
+     {product && (
+        <CheckoutDialog 
+            open={isCheckoutOpen}
+            onOpenChange={setIsCheckoutOpen}
+            product={product}
+            selectedSize={selectedSize}
+        />
+      )}
+    </>
   );
 }
 
@@ -166,3 +172,4 @@ const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
   }
 );
 FormItem.displayName = "FormItem";
+

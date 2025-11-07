@@ -3,11 +3,9 @@
 
 import { useEffect, useState } from 'react';
 import * as React from 'react';
-import { notFound, useRouter } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { useDoc } from '@/firebase';
@@ -26,11 +24,11 @@ import {
 } from "@/components/ui/carousel"
 import { ImageLightbox } from '@/components/image-lightbox';
 import Link from 'next/link';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { CheckoutDialog } from '@/components/checkout-dialog';
 
 
 export default function ProductPage({ params }: { params: { id: string } }) {
-  const { toast } = useToast();
-  const router = useRouter();
   const firestore = useFirestore();
 
   const productRef = useMemoFirebase(
@@ -41,6 +39,7 @@ export default function ProductPage({ params }: { params: { id: string } }) {
 
   const [selectedSize, setSelectedSize] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   const [api, setApi] = useState<CarouselApi>()
   const [current, setCurrent] = useState(0)
@@ -62,10 +61,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     if (product) {
       setSelectedSize(product.availableSizes?.[0]);
-      const MAX_HISTORY_LENGTH = 10;
-      const history = JSON.parse(localStorage.getItem('viewingHistory') || '[]');
-      const updatedHistory = [product.id, ...history.filter((id: string) => id !== product.id)].slice(0, MAX_HISTORY_LENGTH);
-      localStorage.setItem('viewingHistory', JSON.stringify(updatedHistory));
     }
   }, [product]);
 
@@ -95,16 +90,16 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   }
 
   const handleBuyNow = () => {
-    if (product.availableSizes && !selectedSize) {
+    if (product.availableSizes && product.availableSizes.length > 0 && !selectedSize) {
       setError('Please select a size.');
       return;
     }
     setError(null);
-    const checkoutUrl = `/checkout?productId=${product.id}&size=${selectedSize || ''}`;
-    router.push(checkoutUrl);
+    setIsCheckoutOpen(true);
   };
   
   return (
+    <>
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div>
@@ -180,6 +175,15 @@ export default function ProductPage({ params }: { params: { id: string } }) {
         </div>
       </div>
     </div>
+    {product && (
+        <CheckoutDialog 
+            open={isCheckoutOpen}
+            onOpenChange={setIsCheckoutOpen}
+            product={product}
+            selectedSize={selectedSize}
+        />
+    )}
+    </>
   );
 }
 
@@ -190,3 +194,4 @@ const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
   }
 );
 FormItem.displayName = "FormItem";
+
