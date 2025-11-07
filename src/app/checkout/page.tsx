@@ -146,12 +146,13 @@ function CheckoutForm() {
       }
     };
     
-    try {
-        const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
-        const docRef = await addDoc(ordersCollection, orderData);
+    const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
 
-        const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
-        const message = `
+    addDoc(ordersCollection, orderData)
+      .then((docRef) => {
+          // This block executes on successful write to Firestore
+          const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
+          const message = `
 New Order Received!
 Order ID: ${docRef.id}
 Customer ID: ${user.uid}
@@ -167,42 +168,43 @@ Order Item:
 ${itemsSummary}
 
 Total Amount: $${total.toFixed(2)}
-        `.trim().replace(/^\s+/gm, '');
+          `.trim().replace(/^\s+/gm, '');
 
+          const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
+          const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
+          localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
+          
+          const whatsappNumber = '919332307996';
+          const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+          
+          toast({
+              title: "Order Placed!",
+              description: "Redirecting to WhatsApp to confirm your order.",
+          });
+          
+          // Redirect to WhatsApp
+          window.location.href = whatsappUrl;
+          
+          // Navigate to the order confirmation page in the background
+          router.push(`/order/${docRef.id}`);
 
-        const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
-        const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
-        localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
-        
-        const whatsappNumber = '919332307996';
-        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-        
-        toast({
-            title: "Order Placed!",
-            description: "Redirecting to WhatsApp to confirm your order.",
-        });
-        
-        window.location.href = whatsappUrl;
-        // The user will be redirected, but we can still navigate to the order confirmation page in the background
-        // for when they return to the app.
-        router.push(`/order/${docRef.id}`);
-
-    } catch (error) {
-        console.error("Error placing order:", error);
-        const permissionError = new FirestorePermissionError({
-            path: `users/${user.uid}/orders`,
-            operation: 'create',
-            requestResourceData: orderData,
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        toast({
-            variant: 'destructive',
-            title: 'Order Failed',
-            description: 'Could not place your order. Please check your permissions and try again.',
-        });
-    } finally {
-        setIsSubmitting(false);
-    }
+      })
+      .catch((error) => {
+          // This block executes if the write to Firestore fails
+          console.error("Error placing order:", error);
+          const permissionError = new FirestorePermissionError({
+              path: `users/${user.uid}/orders`,
+              operation: 'create',
+              requestResourceData: orderData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+          toast({
+              variant: 'destructive',
+              title: 'Order Failed',
+              description: 'Could not place your order. Please check your permissions and try again.',
+          });
+          setIsSubmitting(false); // Stop loading indicator on failure
+      });
   }
 
   return (
@@ -300,5 +302,3 @@ export default function CheckoutPage() {
     </Suspense>
   )
 }
-
-    
