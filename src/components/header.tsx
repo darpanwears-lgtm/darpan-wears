@@ -14,11 +14,13 @@ import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AccountDialog } from './account-dialog';
 import { useState } from 'react';
+import { LoginDialog } from './login-dialog';
 
 export function Header() {
   const { user } = useUser();
   const firestore = useFirestore();
   const [isAccountDialogOpen, setIsAccountDialogOpen] = useState(false);
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
 
   const userProfileRef = useMemoFirebase(
     () => (user && firestore ? doc(firestore, 'users', user.uid) : null),
@@ -39,8 +41,7 @@ export function Header() {
     if (user) {
       setIsAccountDialogOpen(true);
     } else {
-      // Redirect to login if not authenticated
-      window.location.href = '/login';
+      setIsLoginDialogOpen(true);
     }
   };
 
@@ -102,7 +103,8 @@ export function Header() {
           </div>
         </div>
       </header>
-      <AccountDialog open={isAccountDialogOpen} onOpenChange={setIsAccountDialogOpen} />
+      {user && <AccountDialog open={isAccountDialogOpen} onOpenChange={setIsAccountDialogOpen} />}
+      {!user && <LoginDialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen} />}
     </>
   );
 }
