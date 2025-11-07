@@ -55,12 +55,6 @@ export function Header() {
                   <span className="sr-only">WhatsApp</span>
                 </Button>
               </Link>
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/admin">
-                    <KeyRound className="h-5 w-5" />
-                    <span className="sr-only">Admin</span>
-                </Link>
-              </Button>
             </div>
           </div>
         </div>
