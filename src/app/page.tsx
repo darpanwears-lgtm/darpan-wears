@@ -17,7 +17,6 @@ import { FilterSheet } from '@/components/filter-sheet';
 import { Search } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
-import { HowToOrderDialog } from '@/components/how-to-order-dialog';
 
 export default function Home() {
   const firestore = useFirestore();
@@ -95,27 +94,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col flex-grow">
-      <section className="relative h-[50vh] sm:h-[60vh] w-full flex items-center justify-center text-center text-white overflow-hidden">
-         <Carousel
-          plugins={[Autoplay({ delay: 3000 })]}
-          className="absolute inset-0 w-full h-full"
-          opts={{ loop: true }}
-        >
-          <CarouselContent>
-            {heroImages.map((src, i) => (
-              <CarouselItem key={i}>
-                <Image
-                  src={src}
-                  alt={`Hero image ${i + 1}`}
-                  fill
-                  className="object-cover"
-                  priority={i === 0}
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
-        <div className="absolute inset-0 bg-black/50" />
+      <section className="relative h-[50vh] sm:h-[60vh] w-full flex items-center justify-center text-center text-white overflow-hidden bg-transparent">
         <div className="relative z-10 p-4 flex flex-col items-center">
             <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={80} height={80} className="rounded-full mb-4" />
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold font-headline mb-4 leading-tight">
@@ -130,12 +109,13 @@ export default function Home() {
       </section>
 
       <div
-        className="container mx-auto px-4 py-8"
+        id="all-products"
+        className="container mx-auto px-4 py-8 bg-background rounded-t-3xl -mt-8"
         style={{
           flexGrow: 1,
         }}
       >
-        <section className="text-center mb-8" id="all-products">
+        <section className="text-center mb-8 pt-8">
           <h2 className="text-3xl font-bold tracking-tight lg:text-4xl font-headline">
             Our Products
           </h2>
