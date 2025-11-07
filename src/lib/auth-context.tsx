@@ -2,9 +2,8 @@
 
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useUser, useAuth as useFirebaseAuth, useFirestore } from '@/firebase';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { useAuth as useFirebaseAuth, useFirestore } from '@/firebase';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
 
 interface AdminAuthContextType {
@@ -12,7 +11,6 @@ interface AdminAuthContextType {
   login: (password: string) => Promise<boolean>;
   logout: () => void;
   isAuthLoading: boolean;
-  user: any;
 }
 
 const AuthContext = createContext<AdminAuthContextType | undefined>(undefined);
@@ -30,71 +28,77 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      setIsAuthLoading(isFirebaseUserLoading);
+    const checkAdminStatus = async () => {
       if (isFirebaseUserLoading) {
+        setIsAuthLoading(true);
         return;
       }
       
       if (user && user.email === ADMIN_EMAIL && firestore) {
-          const adminRoleRef = doc(firestore, 'roles_admin', user.uid);
+        const adminRoleRef = doc(firestore, 'roles_admin', user.uid);
+        try {
           const docSnap = await getDoc(adminRoleRef);
           setIsAdmin(docSnap.exists());
+        } catch (e) {
+          console.error("Error checking admin status:", e);
+          setIsAdmin(false);
+        }
       } else {
         setIsAdmin(false);
       }
       setIsAuthLoading(false);
     };
-    checkAdmin();
+
+    checkAdminStatus();
   }, [user, isFirebaseUserLoading, firestore]);
 
   const login = async (password: string): Promise<boolean> => {
-    if (password !== ADMIN_PASSWORD) {
-      return false;
+     if (password !== ADMIN_PASSWORD) {
+        return false;
     }
-
     setIsAuthLoading(true);
+    
     try {
-      // Try to sign in with the correct credentials
-      await signInWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
+        await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
     } catch (error: any) {
-      // If login fails (e.g., user not found or wrong password from a previous setup)
-      if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
-        try {
-          // Try to create the user. If it already exists, this will fail.
-          await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD);
-        } catch (creationError: any) {
-          if (creationError.code !== 'auth/email-already-in-use') {
-            // If it's any error other than 'email-already-in-use', something is wrong.
-            console.error("Admin user creation failed:", creationError);
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+            try {
+                // User doesn't exist or password was wrong, try creating the user.
+                // This handles the first-time login or a password reset scenario.
+                const userCredential = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, password);
+                const newUser = userCredential.user;
+                if (newUser && firestore) {
+                    const adminRoleRef = doc(firestore, 'roles_admin', newUser.uid);
+                    await setDoc(adminRoleRef, { isAdmin: true });
+                }
+            } catch (creationError: any) {
+                 if (creationError.code !== 'auth/email-already-in-use') {
+                    console.error("Failed to create admin user:", creationError);
+                    setIsAuthLoading(false);
+                    return false;
+                }
+                // If it already exists, it means the password on Firebase is different.
+                // Since we couldn't sign in, the provided password is wrong.
+                // This path is now effectively an "incorrect password" path after attempting creation.
+                setIsAuthLoading(false);
+                return false;
+            }
+        } else {
+            console.error("Admin login failed with unexpected error:", error);
             setIsAuthLoading(false);
             return false;
-          }
-          // If email is in use, it implies we just need to sign in, which we already tried.
-          // This can happen if the password on the backend is different.
-          // For this app's logic, we assume the provided ADMIN_PASSWORD is the source of truth.
-          // A more robust solution for a real app would be to update the password, but creating a fresh user is simpler.
-           console.error("Admin login failed, password might be out of sync:", error);
-           setIsAuthLoading(false);
-           return false;
         }
-      } else {
-         console.error("An unexpected error occurred during login:", error);
-         setIsAuthLoading(false);
-         return false;
-      }
     }
 
-    // After successful sign-in or creation, get the current user
+    // This part runs after a successful sign-in or creation.
     const currentUser = auth.currentUser;
     if (currentUser && firestore) {
+        // Ensure the admin role exists on every successful login.
         const adminRoleRef = doc(firestore, 'roles_admin', currentUser.uid);
-        // Ensure the admin role document exists
-        await setDoc(adminRoleRef, { isAdmin: true });
+        await setDoc(adminRoleRef, { isAdmin: true }, { merge: true });
         setIsAdmin(true);
         router.push('/admin');
     } else {
-        // This case should ideally not be reached
         setIsAuthLoading(false);
         return false;
     }
@@ -103,17 +107,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
 
-
   const logout = () => {
     signOut(auth).then(() => {
         setIsAdmin(false);
         if (pathname.startsWith('/admin')) {
-            router.push('/login');
+            router.push('/');
         }
     });
   };
 
-  const value = { isAdmin, login, logout, isAuthLoading, user };
+  const value = { isAdmin, login, logout, isAuthLoading };
 
   return (
     <AuthContext.Provider value={value}>

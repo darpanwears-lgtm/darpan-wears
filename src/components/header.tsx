@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { User, Instagram } from 'lucide-react';
+import { User, Instagram, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FacebookIcon } from './icons/facebook';
 import { WhatsAppIcon } from './icons/whatsapp';
@@ -36,9 +36,15 @@ export function Header() {
                   <span className="sr-only">WhatsApp</span>
                 </Button>
               </Link>
-              <Link href={'/login'}>
+              <Link href={'/account'}>
                 <Button variant="ghost" size="sm">
                   <User className="h-5 w-5" />
+                  <span className="sr-only">Account</span>
+                </Button>
+              </Link>
+               <Link href={'/admin/login'}>
+                <Button variant="ghost" size="sm">
+                  <KeyRound className="h-5 w-5" />
                   <span className="sr-only">Admin</span>
                 </Button>
               </Link>
