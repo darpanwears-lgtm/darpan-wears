@@ -96,25 +96,7 @@ export default function Home() {
   return (
     <div className="flex flex-col flex-grow">
       <section className="relative h-[50vh] sm:h-[60vh] w-full flex items-center justify-center text-center text-white overflow-hidden">
-         <Carousel
-          plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
-          className="absolute inset-0 w-full h-full"
-        >
-          <CarouselContent>
-            {heroImages.map((src, index) => (
-              <CarouselItem key={index}>
-                <Image
-                  src={src}
-                  alt={`Hero Image ${index + 1}`}
-                  fill
-                  className="object-cover"
-                  priority={index === 0}
-                  data-ai-hint="fashion model"
-                />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-        </Carousel>
+         <div className="absolute inset-0 w-full h-full bg-transparent" />
         <div className="absolute inset-0 bg-black/50" />
         <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-background to-transparent" />
         <div className="relative z-10 p-4 flex flex-col items-center">
@@ -126,7 +108,6 @@ export default function Home() {
               <Button asChild size="lg" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }}>
                 <Link href="#all-products">Shop Now</Link>
               </Button>
-              <HowToOrderDialog />
           </div>
         </div>
       </section>
