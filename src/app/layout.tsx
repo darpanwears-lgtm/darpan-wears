@@ -10,6 +10,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Footer } from '@/components/footer';
 import { InstagramPopup } from '@/components/instagram-popup';
 import { useEffect, useState } from 'react';
+import { UserProvider } from '@/lib/user-context';
 
 // export const metadata: Metadata = {
 //   title: 'Darpan Wears Mobile Shop',
@@ -50,6 +51,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <FirebaseClientProvider>
           <AuthProvider>
+            <UserProvider>
               {isClient && <InstagramPopup open={showInstagramPopup} onOpenChange={setShowInstagramPopup} onFollow={handlePopupClose} />}
               <div className="flex min-h-screen flex-col">
                 <Header />
@@ -57,6 +59,7 @@ export default function RootLayout({
                 <Footer />
               </div>
               <Toaster />
+            </UserProvider>
           </AuthProvider>
         </FirebaseClientProvider>
       </body>

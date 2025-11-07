@@ -2,22 +2,38 @@
 'use client';
 
 import Link from 'next/link';
-import { Instagram, KeyRound } from 'lucide-react';
+import { Instagram, KeyRound, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FacebookIcon } from './icons/facebook';
 import { WhatsAppIcon } from './icons/whatsapp';
 import Image from 'next/image';
+import { useUserContext } from '@/lib/user-context';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 
 export function Header() {
+  const { instagramUser } = useUserContext();
+
   return (
     <>
       <header className="w-full border-b bg-background">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-            <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
-                <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={32} height={32} className="rounded-full" />
-                Darpan Wears
-            </Link>
+            {instagramUser ? (
+                 <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
+                    <Avatar className="h-8 w-8">
+                         <AvatarImage src={`https://www.instagram.com/${instagramUser.replace('@','')}/?__a=1&__d=dis`} style={{ display: 'none' }} />
+                         <AvatarFallback>
+                             <User className="h-4 w-4" />
+                         </AvatarFallback>
+                    </Avatar>
+                    {instagramUser}
+                 </Link>
+            ) : (
+                <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
+                    <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={32} height={32} className="rounded-full" />
+                    Darpan Wears
+                </Link>
+            )}
 
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="flex items-center">

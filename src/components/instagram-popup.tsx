@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Instagram } from 'lucide-react';
+import { useUserContext } from '@/lib/user-context';
 
 interface InstagramPopupProps {
   open: boolean;
@@ -23,14 +24,15 @@ interface InstagramPopupProps {
 
 export function InstagramPopup({ open, onOpenChange, onFollow }: InstagramPopupProps) {
   const [username, setUsername] = useState('');
+  const { setInstagramUser } = useUserContext();
 
-  const handleFeatureClick = () => {
+  const handlePersonalizeClick = () => {
     if (username) {
-        localStorage.setItem('featuredInstagramUser', username);
+        setInstagramUser(username);
     }
     onFollow(); // This will set the cookie and close the popup
     if (typeof window !== 'undefined') {
-        window.location.reload(); // Reload to show the footer
+        window.location.reload(); // Reload to show the header/footer updates
     }
   };
 
@@ -45,10 +47,10 @@ export function InstagramPopup({ open, onOpenChange, onFollow }: InstagramPopupP
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Instagram className="text-pink-500" />
-            Get Featured!
+            Personalize Your Experience!
           </DialogTitle>
           <DialogDescription>
-            Enter your Instagram username to be featured on our site footer.
+            Enter your Instagram username to see your profile in the header.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -63,8 +65,8 @@ export function InstagramPopup({ open, onOpenChange, onFollow }: InstagramPopupP
           </div>
         </div>
         <DialogFooter className="sm:justify-between flex-col sm:flex-row-reverse gap-2">
-           <Button type="button" onClick={handleFeatureClick} style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }}>
-            Feature Me
+           <Button type="button" onClick={handlePersonalizeClick} style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }}>
+            Personalize
           </Button>
           <Button type="button" variant="secondary" onClick={handleSkip}>
             Skip for now
