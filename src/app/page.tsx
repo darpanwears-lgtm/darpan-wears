@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { ProductCard } from '@/components/product-card';
 import { useCollection } from '@/firebase';
 import { collection } from 'firebase/firestore';
@@ -17,6 +17,7 @@ import { FilterSheet } from '@/components/filter-sheet';
 import { Search } from 'lucide-react';
 import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel';
 import Autoplay from "embla-carousel-autoplay";
+import { InstagramPopup } from '@/components/instagram-popup';
 
 const heroImages = [
     {
@@ -43,6 +44,20 @@ export default function Home() {
     [firestore]
   );
   const { data: productsFromDb, isLoading } = useCollection<Product>(productsCollection);
+
+  const [showInstagramPopup, setShowInstagramPopup] = useState(false);
+
+  useEffect(() => {
+    const hasSeenPopup = localStorage.getItem('hasSeenInstagramPopup');
+    if (!hasSeenPopup) {
+      setShowInstagramPopup(true);
+    }
+  }, []);
+
+  const handlePopupClose = () => {
+    localStorage.setItem('hasSeenInstagramPopup', 'true');
+    setShowInstagramPopup(false);
+  };
 
   const products = useMemo(() => {
     // If not loading and the database has products, use them.
@@ -106,6 +121,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col flex-grow">
+      <InstagramPopup open={showInstagramPopup} onOpenChange={setShowInstagramPopup} onFollow={handlePopupClose} />
       <section className="relative h-[50vh] sm:h-[60vh] w-full flex items-center justify-center text-center text-white overflow-hidden">
         <Carousel 
             className="absolute inset-0"
@@ -210,5 +226,3 @@ export default function Home() {
     </div>
   );
 }
-
-    
