@@ -1,11 +1,11 @@
 'use client';
 
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser } from '@/firebase';
+import { useUser, useAuth } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
-import { signOut, useAuth as useFirebaseAuth } from 'firebase/auth';
+import { signOut } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -18,7 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 export default function AccountPage() {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
-  const auth = useFirebaseAuth();
+  const auth = useAuth();
   const firestore = useFirestore();
   const { toast } = useToast();
 
