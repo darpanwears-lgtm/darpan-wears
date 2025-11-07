@@ -22,6 +22,7 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel"
+import { ImageLightbox } from './image-lightbox';
 
 interface ProductDetailsProps {
     product: Product;
@@ -82,13 +83,15 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     <CarouselItem key={index}>
                       <Card>
                         <CardContent className="relative flex aspect-square items-center justify-center p-0">
-                           <Image
-                                src={url}
-                                alt={`${product.name} image ${index + 1}`}
-                                fill
-                                className="object-contain rounded-lg"
-                                data-ai-hint={product.imageHint}
-                            />
+                           <ImageLightbox imageUrl={url} alt={`${product.name} image ${index + 1}`}>
+                              <Image
+                                  src={url}
+                                  alt={`${product.name} image ${index + 1}`}
+                                  fill
+                                  className="object-contain rounded-lg cursor-zoom-in"
+                                  data-ai-hint={product.imageHint}
+                              />
+                           </ImageLightbox>
                         </CardContent>
                       </Card>
                     </CarouselItem>
