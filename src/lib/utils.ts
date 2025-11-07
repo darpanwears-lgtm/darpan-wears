@@ -6,17 +6,22 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 const COLORS = [
-  '#F87171', // Red
-  '#FB923C', // Orange
-  '#FBBF24', // Amber
-  '#A3E635', // Lime
-  '#4ADE80', // Green
-  '#34D399', // Emerald
-  '#2DD4BF', // Teal
-  '#60A5FA', // Blue
-  '#818CF8', // Indigo
-  '#A78BFA', // Violet
-  '#F472B6', // Pink
+  '#ef4444', // Red
+  '#f97316', // Orange
+  '#f59e0b', // Amber
+  '#eab308', // Yellow
+  '#84cc16', // Lime
+  '#22c55e', // Green
+  '#10b981', // Emerald
+  '#14b8a6', // Teal
+  '#06b6d4', // Cyan
+  '#3b82f6', // Blue
+  '#6366f1', // Indigo
+  '#8b5cf6', // Violet
+  '#a855f7', // Purple
+  '#d946ef', // Fuchsia
+  '#ec4899', // Pink
+  '#f43f5e', // Rose
 ];
 
 export function generateColorFromString(str: string): string {
