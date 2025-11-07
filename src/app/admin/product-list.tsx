@@ -1,9 +1,9 @@
 
 'use client';
-import { useCollection, useFirestore } from '@/firebase';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, doc, deleteDoc } from 'firebase/firestore';
 import type { Product } from '@/lib/types';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -18,7 +18,7 @@ import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 export function ProductList() {
     const firestore = useFirestore();
-    const productsCollection = useMemo(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
+    const productsCollection = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
     const { data: products, isLoading } = useCollection<Product>(productsCollection);
     const { toast } = useToast();
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
