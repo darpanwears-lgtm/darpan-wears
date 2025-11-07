@@ -45,7 +45,10 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           </DialogTrigger>
       </Card>
-      <DialogContent className="max-w-4xl">
+      <DialogContent 
+        className="max-w-4xl text-white"
+        style={{ background: 'linear-gradient(to right, #ff7e5f, #feb47b)' }}
+      >
         <ProductDetails product={product} />
       </DialogContent>
     </Dialog>

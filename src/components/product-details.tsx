@@ -98,14 +98,14 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 <CarouselPrevious />
                 <CarouselNext />
               </Carousel>
-               <div className="py-2 text-center text-sm text-muted-foreground">
+               <div className="py-2 text-center text-sm text-muted-foreground text-white/80">
                 Slide {current + 1} of {count}
               </div>
             </div>
             <div className="flex flex-col justify-center h-full">
                 <h1 className="text-3xl lg:text-4xl font-bold mb-2 font-headline">{product.name}</h1>
-                <p className="text-2xl font-semibold mb-4 text-primary">${product.price.toFixed(2)}</p>
-                <p className="text-muted-foreground mb-6">{product.description}</p>
+                <p className="text-2xl font-semibold mb-4 text-white">${product.price.toFixed(2)}</p>
+                <p className="text-white/80 mb-6">{product.description}</p>
                 
                 {product.availableSizes && product.availableSizes.length > 0 && (
                     <div className="mb-6">
@@ -121,9 +121,9 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                             <Label
                             htmlFor={`size-${size}-${product.id}`}
                             className={cn(
-                                "flex items-center justify-center rounded-md border-2 w-12 h-12 text-sm font-medium uppercase hover:bg-muted focus:outline-none cursor-pointer",
+                                "flex items-center justify-center rounded-md border-2 p-3 text-sm font-medium uppercase hover:bg-white/20 focus:outline-none cursor-pointer border-white/50 text-white",
                                 selectedSize === size
-                                ? "bg-primary text-primary-foreground border-transparent"
+                                ? "bg-white text-black border-transparent"
                                 : "bg-transparent"
                             )}
                             >
@@ -132,22 +132,22 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                         </FormItem>
                         ))}
                     </RadioGroup>
-                    {error && <p className="text-sm font-medium text-destructive mt-2">{error}</p>}
+                    {error && <p className="text-sm font-medium text-red-400 mt-2">{error}</p>}
                     </div>
                 )}
 
                 <div className="flex items-center gap-4 mt-auto pt-4">
                     {product.productLink ? (
-                      <Button size="lg" variant="secondary" asChild className="w-full">
+                      <Button size="lg" variant="secondary" asChild className="w-full bg-white/10 hover:bg-white/20 text-white">
                         <Link href={product.productLink} target="_blank">View Original</Link>
                       </Button>
                     ) : (
                        <DialogClose asChild>
-                        <Button size="lg" variant="outline" className="w-full">Back</Button>
+                        <Button size="lg" variant="outline" className="w-full bg-transparent hover:bg-white/10 border-white/50 text-white">Back</Button>
                       </DialogClose>
                     )}
                     
-                    <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }} className="w-full">Buy Now</Button>
+                    <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'white', color: 'black', border: '2px solid black' }} className="w-full">Buy Now</Button>
                     
                 </div>
             </div>
@@ -172,4 +172,3 @@ const FormItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
   }
 );
 FormItem.displayName = "FormItem";
-
