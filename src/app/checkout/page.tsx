@@ -12,8 +12,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import Image from 'next/image';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Suspense, useState, useEffect } from 'react';
-import { useDoc, useUser } from '@/firebase';
-import { doc, addDoc, collection } from 'firebase/firestore';
+import { useDoc, useUser, useAuth } from '@/firebase';
+import { doc, addDoc, collection, setDoc } from 'firebase/firestore';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { errorEmitter, FirestorePermissionError } from '@/firebase';
 import { Loader2 } from 'lucide-react';
 import type { UserProfile } from '@/lib/types';
+import { signInAnonymously, type User } from 'firebase/auth';
 
 
 const formSchema = z.object({
@@ -41,6 +42,7 @@ function CheckoutForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const firestore = useFirestore();
+  const auth = useAuth();
   const { user } = useUser();
   
   const userProfileRef = useMemoFirebase(
@@ -116,46 +118,63 @@ function CheckoutForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    if (!user || !firestore) {
+    if (!auth || !firestore) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'You must be logged in to place an order.',
+        description: 'Services are not ready. Please try again in a moment.',
       });
       setIsSubmitting(false);
       return;
     }
     
-    const orderData = {
-      userId: user.uid,
-      items: [{
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        quantity: 1,
-        imageUrl: primaryImageUrl,
-        size: size || 'N/A'
-      }],
-      totalAmount: total,
-      status: 'Processing' as const,
-      orderDate: Date.now(),
-      shippingAddress: {
-        name: values.name,
-        address: values.address,
-        phone: values.phone,
-      }
-    };
-    
-    const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
+    let currentUser: User;
+    try {
+        currentUser = auth.currentUser ? auth.currentUser : (await signInAnonymously(auth)).user;
+    } catch(error) {
+        console.error("Authentication failed:", error);
+        toast({ variant: "destructive", title: "Login Failed", description: "Could not sign you in to place an order." });
+        setIsSubmitting(false);
+        return;
+    }
 
     try {
+        const userProfileRef = doc(firestore, 'users', currentUser.uid);
+        await setDoc(userProfileRef, {
+            uid: currentUser.uid,
+            name: values.name,
+            address: values.address,
+            phone: values.phone,
+        }, { merge: true });
+
+        const orderData = {
+          userId: currentUser.uid,
+          items: [{
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: 1,
+            imageUrl: primaryImageUrl,
+            size: size || 'N/A'
+          }],
+          totalAmount: total,
+          status: 'Processing' as const,
+          orderDate: Date.now(),
+          shippingAddress: {
+            name: values.name,
+            address: values.address,
+            phone: values.phone,
+          }
+        };
+        
+        const ordersCollection = collection(firestore, 'users', currentUser.uid, 'orders');
         const docRef = await addDoc(ordersCollection, orderData);
         
         const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
         const message = `
   New Order Received!
   Order ID: ${docRef.id}
-  Customer ID: ${user.uid}
+  Customer ID: ${currentUser.uid}
   Product ID: ${product.id}
   
   Customer Details:
@@ -182,24 +201,22 @@ function CheckoutForm() {
             description: "Redirecting to WhatsApp to confirm your order.",
         });
         
-        // This will navigate the current browser window to WhatsApp.
         window.location.href = whatsappUrl;
 
     } catch (error) {
         console.error("Error placing order:", error);
-        // This emits a detailed error for debugging but doesn't throw,
-        // so we add a user-facing toast as well.
+        
+        // This provides more detailed error info for debugging but doesn't throw.
         const permissionError = new FirestorePermissionError({
-            path: `users/${user.uid}/orders`,
+            path: `users/${currentUser.uid}/orders`,
             operation: 'create',
-            requestResourceData: orderData,
         });
         errorEmitter.emit('permission-error', permissionError);
 
         toast({
             variant: 'destructive',
             title: 'Order Failed',
-            description: 'Could not place your order. Please check your details and try again.',
+            description: 'Could not save your order. Please check your details and try again.',
         });
     } finally {
       setIsSubmitting(false);
