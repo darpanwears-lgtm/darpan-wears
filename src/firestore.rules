@@ -47,17 +47,8 @@ service cloud.firestore {
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
     }
-
+    
     /**
-     * @description Collection group rule for 'orders'. This allows admins to query across all users' orders.
-     * This rule must be at the top level to function correctly for collection group queries.
-     */
-    match /{path=**}/orders/{orderId} {
-      // Admins can perform list (collection group query) and get operations on any order.
-      allow list, get: if isAdmin();
-    }
-
-   /**
      * @description Rules for the /products/{productId} collection. Allows read access to all users, but only admins can create, update, or delete products.
      */
     match /products/{productId} {
@@ -97,6 +88,15 @@ service cloud.firestore {
                           || request.resource.data.keys().hasAll(['rating'])
                         )) || isAdmin();
       }
+    }
+
+    /**
+     * @description Collection group rule for 'orders'. This allows admins to query across all users' orders.
+     * This rule must be at the top level to function correctly for collection group queries.
+     */
+    match /{path=**}/orders/{orderId} {
+      // Admins can perform list (collection group query) and get operations on any order.
+      allow list, get: if isAdmin();
     }
   }
 }
