@@ -50,9 +50,6 @@ export default function ChatPage() {
     const userProfileRef = useMemoFirebase(() => (user && firestore ? doc(firestore, 'users', user.uid) : null), [user, firestore]);
     const {data: userProfile} = useDoc<UserProfile>(userProfileRef);
 
-    const adminProfileRef = useMemoFirebase(() => (firestore ? doc(firestore, 'users', 'ADMIN_USER_ID_PLACEHOLDER') : null), [firestore]);
-    const {data: adminProfile} = useDoc<UserProfile>(adminProfileRef);
-
     useEffect(() => {
         if (!isUserLoading && !user) {
             toast({
@@ -121,8 +118,8 @@ export default function ChatPage() {
 
     const userInitial = getInitials(userProfile?.name);
     const userColor = generateColorFromString(userProfile?.name || user.uid);
-    const adminInitial = getInitials(adminProfile?.name || 'Admin');
-    const adminColor = generateColorFromString(adminProfile?.name || 'Admin');
+    const adminInitial = 'A';
+    const adminColor = generateColorFromString('Admin');
 
     return (
         <div className="container mx-auto py-8 flex justify-center">
