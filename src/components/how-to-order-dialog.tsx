@@ -15,7 +15,7 @@ export function HowToOrderDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="outline" size="lg">How to Order</Button>
+        <Button variant="outline" size="lg" style={{ color: 'black', border: '2px solid black' }}>How to Order</Button>
       </DialogTrigger>
       <DialogContent className="max-w-xl">
         <DialogHeader>
