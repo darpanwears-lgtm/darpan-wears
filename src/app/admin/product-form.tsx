@@ -54,7 +54,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
   });
 
   useEffect(() => {
-    if (isEditMode) {
+    if (isEditMode && product) {
       form.reset({
         name: product.name,
         description: product.description,
@@ -62,7 +62,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         category: product.category,
         availableSizes: product.availableSizes?.map(s => ({ value: s })) || [],
         stockQuantity: product.stockQuantity,
-        imageUrls: product.imageUrls.map(url => ({ value: url })),
+        imageUrls: product.imageUrls?.map(url => ({ value: url })) || [{ value: '' }],
         productLink: product.productLink || '',
       });
     }
