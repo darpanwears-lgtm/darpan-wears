@@ -11,11 +11,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import Image from 'next/image';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Suspense } from 'react';
-import { useDoc } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useDoc, useUser } from '@/firebase';
+import { doc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
-import type { Product } from '@/lib/types';
+import type { Product, Order } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
+import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -31,8 +33,10 @@ function CheckoutForm() {
   const searchParams = useSearchParams();
   const productId = searchParams.get('productId');
   const size = searchParams.get('size');
+  const { toast } = useToast();
   
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const productRef = useMemoFirebase(
     () => (firestore && productId ? doc(firestore, 'products', productId) : null),
@@ -86,11 +90,51 @@ function CheckoutForm() {
   
   const total = product.price;
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!user || !firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'You must be logged in to place an order.',
+      });
+      return;
+    }
+
     const orderId = Math.random().toString(36).substr(2, 9);
     
-    const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
+    // Save order to Firestore
+    const orderData = {
+      userId: user.uid,
+      items: [{
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        quantity: 1,
+        imageUrl: product.imageUrl,
+        size: size || 'N/A'
+      }],
+      totalAmount: total,
+      status: 'Processing',
+      orderDate: Date.now(),
+      shippingAddress: {
+        name: values.name,
+        address: values.address,
+        phone: values.phone,
+      }
+    };
+    
+    const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
+    addDoc(ordersCollection, orderData).catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+          path: ordersCollection.path,
+          operation: 'create',
+          requestResourceData: orderData,
+      });
+      errorEmitter.emit('permission-error', permissionError);
+    });
 
+    // Send WhatsApp message
+    const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
     const message = `
 *New Order Received!* (ID: ${orderId})\\n
 \\n
@@ -105,7 +149,6 @@ ${itemsSummary}\\n
 \\n
 *Total Amount: $${total.toFixed(2)}*
     `;
-
     const whatsappNumber = '7497810643';
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
@@ -115,8 +158,8 @@ ${itemsSummary}\\n
     const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
     localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
     
-    // Redirect to WhatsApp
-    window.location.href = whatsappUrl;
+    // Redirect to success page, which then redirects to WhatsApp
+    router.push(`/order/${orderId}?whatsappUrl=${encodeURIComponent(whatsappUrl)}`);
   }
 
   return (

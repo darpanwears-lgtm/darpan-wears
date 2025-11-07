@@ -4,17 +4,18 @@
  * Core Philosophy:
  * This ruleset implements a role-based access control system where all users can read product information,
  * but only users with a designated admin role can create, update, or delete products.
- * Customer can manage their own profile data.
+ * Customer can manage their own profile data and order history.
  *
  * Data Structure:
  * - /products/{productId}: Stores publicly readable product information.
  * - /roles_admin/{userId}: Indicates admin privileges.
  * - /users/{userId}: Stores customer profile information.
+ * - /users/{userId}/orders/{orderId}: Stores order history for a specific user.
  *
  * Key Security Decisions:
  * - Public read access to the /products collection to enable product browsing.
  * - Administrative privileges are determined by the presence of a document in the `/roles_admin/{userId}` collection.
- * - Customer can only access their own data in `/users/{userId}`.
+ * - Customer can only access their own data in `/users/{userId}` and its subcollections.
  *
  */
 rules_version = '2';
@@ -63,11 +64,28 @@ service cloud.firestore {
     }
 
     /**
-     * @description Rules for the /users/{userId} collection. Allows a user to create, read, update, and delete their own profile.
+     * @description Rules for the /users/{userId} collection and its subcollections.
      */
     match /users/{userId} {
+      // Users can only read and write their own profile document.
       allow read, write: if isOwner(userId);
       allow list: if false; // Prevent listing all users
+
+      /**
+       * @description Rules for the orders subcollection.
+       */
+      match /orders/{orderId} {
+        // Allow user to create, read, and list their own orders.
+        allow create, get, list: if isOwner(userId);
+
+        // Allow user to update their own order only for specific fields (status, rating).
+        // A user can cancel an order only if it's currently 'Processing'.
+        allow update: if isOwner(userId)
+                      && (
+                        (request.resource.data.status == 'Cancelled' && resource.data.status == 'Processing')
+                        || request.resource.data.keys().hasAll(['rating'])
+                      );
+      }
     }
   }
 }
