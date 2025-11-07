@@ -58,5 +58,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQhvwiJ10S7Qr1sgYNnSovJqdVO3IfAG1kIDpxE0CprhMewSh4Isq21HWtmxu3tFmsL2wc&usqp=CAU');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
   }
 }
