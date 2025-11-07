@@ -11,11 +11,14 @@ export interface Product {
   stockQuantity: number;
 }
 
-export interface CartItem extends Product {
+export interface CartItem {
+  id: string;
+  name: string;
+  price: number;
   quantity: number;
-  size: string;
-  // Note: This only uses the primary image.
-  imageUrl: string;
+  size?: string;
+  image: string; // Primary image for cart display
+  imageHint?: string;
 }
 
 export interface OrderItem {

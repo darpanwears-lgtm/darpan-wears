@@ -45,7 +45,18 @@ export default function Home() {
   );
   const { data: productsFromDb, isLoading } = useCollection<Product>(productsCollection);
 
-  const products = !isLoading && productsFromDb?.length === 0 ? PlaceHolderImages : productsFromDb;
+  const products = useMemo(() => {
+    // If not loading and the database has products, use them.
+    if (!isLoading && productsFromDb && productsFromDb.length > 0) {
+      return productsFromDb;
+    }
+    // If not loading and database is empty, use placeholders.
+    if (!isLoading && productsFromDb && productsFromDb.length === 0) {
+      return PlaceHolderImages;
+    }
+    // While loading, return an empty array to avoid showing placeholders temporarily.
+    return [];
+  }, [isLoading, productsFromDb]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [category, setCategory] = useState('all');
@@ -59,7 +70,7 @@ export default function Home() {
   }, [products]);
 
   const maxPrice = useMemo(() => {
-    if (!products) return 1000;
+    if (!products || products.length === 0) return 1000;
     return Math.max(...products.map(p => p.price), 1000);
   }, [products]);
 
