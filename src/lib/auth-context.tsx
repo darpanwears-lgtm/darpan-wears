@@ -7,8 +7,6 @@ import {
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
     signOut, 
-    GoogleAuthProvider, 
-    signInWithPopup
 } from 'firebase/auth';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
 import type { UserProfile } from './types';
@@ -18,7 +16,8 @@ interface AdminAuthContextType {
   isAdmin: boolean;
   login: (password: string) => Promise<boolean>;
   logout: () => void;
-  signInWithGoogle: () => Promise<boolean>;
+  emailLogin: (email: string, pass: string) => Promise<boolean>;
+  emailSignUp: (email: string, pass: string, instaName: string) => Promise<boolean>;
   isAuthLoading: boolean;
 }
 
@@ -104,66 +103,56 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthLoading(false);
     return true;
   };
-
-  const signInWithGoogle = async (): Promise<boolean> => {
-    if (!auth || !firestore) return false;
+  
+  const emailLogin = async (email: string, pass: string): Promise<boolean> => {
+    if (!auth) return false;
     setIsAuthLoading(true);
-    const provider = new GoogleAuthProvider();
     try {
-        const result = await signInWithPopup(auth, provider);
-        const gUser = result.user;
-        const userProfileRef = doc(firestore, 'users', gUser.uid);
-
-        // Check if the user document already exists
-        const docSnap = await getDoc(userProfileRef);
-
-        let profileData: UserProfile;
-
-        if (docSnap.exists()) {
-            // User exists, merge new data with existing data
-            const existingData = docSnap.data() as UserProfile;
-            profileData = {
-                ...existingData,
-                name: gUser.displayName || existingData.name || 'New User',
-                email: gUser.email || existingData.email,
-                photoURL: gUser.photoURL || existingData.photoURL || '',
-                uid: gUser.uid,
-            };
-        } else {
-            // New user, create a new profile
-            profileData = {
-                uid: gUser.uid,
-                name: gUser.displayName || 'New User',
-                email: gUser.email || '',
-                photoURL: gUser.photoURL || '',
-            };
-        }
-
-        // Use a non-blocking write with proper error handling
-        setDoc(userProfileRef, profileData, { merge: true }).catch(
-            (serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: userProfileRef.path,
-                    operation: 'write',
-                    requestResourceData: profileData,
-                });
-                // This will emit the error to be caught by the listener
-                // without blocking the sign-in flow.
-                errorEmitter.emit('permission-error', permissionError);
-                // Even if the write fails, we can consider login successful
-                // as auth itself succeeded. The listener will handle the error.
-            }
-        );
-
+        await signInWithEmailAndPassword(auth, email, pass);
         setIsAuthLoading(false);
-        return true; // Return true because authentication was successful
-
+        return true;
     } catch (error) {
-        console.error('Google sign-in failed:', error);
+        console.error("Email login failed:", error);
         setIsAuthLoading(false);
         return false;
     }
   };
+  
+  const emailSignUp = async (email: string, pass: string, instaName: string): Promise<boolean> => {
+    if (!auth || !firestore) return false;
+    setIsAuthLoading(true);
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+        const newUser = userCredential.user;
+
+        const profileData: UserProfile = {
+            uid: newUser.uid,
+            name: instaName, // Using Instagram username as the main display name
+            email: newUser.email || '',
+        };
+        
+        const userProfileRef = doc(firestore, 'users', newUser.uid);
+
+        setDoc(userProfileRef, profileData).catch(
+            (serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: userProfileRef.path,
+                    operation: 'create',
+                    requestResourceData: profileData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            }
+        );
+        
+        setIsAuthLoading(false);
+        return true;
+
+    } catch (error) {
+        console.error('Email sign-up failed:', error);
+        setIsAuthLoading(false);
+        return false;
+    }
+  }
 
 
   const logout = () => {
@@ -175,7 +164,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const value = { isAdmin, login, logout, isAuthLoading, signInWithGoogle };
+  const value = { isAdmin, login, logout, isAuthLoading, emailLogin, emailSignUp };
 
   return (
     <AuthContext.Provider value={value}>

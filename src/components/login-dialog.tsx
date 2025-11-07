@@ -12,6 +12,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { useAuth } from '@/lib/auth-context';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+
+const loginSchema = z.object({
+  email: z.string().email({ message: 'Invalid email address.' }),
+  password: z.string().min(1, { message: 'Password is required.' }),
+});
+
+const signupSchema = z.object({
+  instagramUsername: z.string().min(2, { message: 'Instagram username is required.' }),
+  email: z.string().email({ message: 'Invalid email address.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+});
+
 
 interface LoginDialogProps {
   open: boolean;
@@ -19,68 +37,102 @@ interface LoginDialogProps {
 }
 
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
-  const { signInWithGoogle } = useAuth();
+  const { emailLogin, emailSignUp } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const handleGoogleSignIn = async () => {
+  const [activeTab, setActiveTab] = useState("login");
+
+  const loginForm = useForm<z.infer<typeof loginSchema>>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
+
+  const signupForm = useForm<z.infer<typeof signupSchema>>({
+    resolver: zodResolver(signupSchema),
+    defaultValues: { instagramUsername: '', email: '', password: '' },
+  });
+
+  const handleLogin = async (values: z.infer<typeof loginSchema>) => {
     setIsSubmitting(true);
-    try {
-      const success = await signInWithGoogle();
-      if (success) {
-        toast({
-          title: "Login Successful",
-          description: "Welcome back!",
-        });
-        onOpenChange(false);
-      } else {
-        throw new Error("Google sign-in was not successful.");
-      }
-    } catch (error) {
-      console.error("Login failed:", error);
+    const success = await emailLogin(values.email, values.password);
+    if (success) {
+      toast({ title: "Login Successful", description: "Welcome back!" });
+      onOpenChange(false);
+    } else {
       toast({
         variant: "destructive",
         title: "Login Failed",
-        description: "Could not sign you in with Google. Please try again.",
+        description: "Please check your email and password and try again.",
       });
-    } finally {
-      setIsSubmitting(false);
+    }
+    setIsSubmitting(false);
+  };
+
+  const handleSignUp = async (values: z.infer<typeof signupSchema>) => {
+    setIsSubmitting(true);
+    const success = await emailSignUp(values.email, values.password, values.instagramUsername);
+    if (success) {
+      toast({ title: "Account Created", description: "You have been successfully signed up!" });
+      onOpenChange(false);
+    } else {
+      toast({
+        variant: "destructive",
+        title: "Sign Up Failed",
+        description: "Could not create an account. The email might already be in use.",
+      });
+    }
+    setIsSubmitting(false);
+  };
+  
+  const handleOpenChange = (isOpen: boolean) => {
+    if (isSubmitting) return; 
+    onOpenChange(isOpen);
+    if (!isOpen) {
+        loginForm.reset();
+        signupForm.reset();
     }
   }
-  
-  const GoogleIcon = () => (
-    <svg className="mr-2 h-4 w-4" viewBox="0 0 48 48">
-      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
-      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
-      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.657-3.356-11.303-7.962l-6.571,4.819C9.656,39.663,16.318,44,24,44z"></path>
-      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.022,35.372,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-    </svg>
-  );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold font-headline text-center">Welcome</DialogTitle>
           <DialogDescription className="text-center">
-            Sign in to continue to Darpan Wears.
+            Sign in or create an account to continue.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-           <Button
-              variant="outline"
-              className="w-full"
-              onClick={handleGoogleSignIn}
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <GoogleIcon />
-              )}
-              {isSubmitting ? 'Signing in...' : 'Sign in with Google'}
-            </Button>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+            </TabsList>
+            <TabsContent value="login">
+                <Form {...loginForm}>
+                    <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4 pt-4">
+                        <FormField control={loginForm.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="you@example.com" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={loginForm.control} name="password" render={({ field }) => ( <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <Button type="submit" className="w-full" disabled={isSubmitting}>
+                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isSubmitting ? 'Logging in...' : 'Login'}
+                        </Button>
+                    </form>
+                </Form>
+            </TabsContent>
+            <TabsContent value="signup">
+                 <Form {...signupForm}>
+                    <form onSubmit={signupForm.handleSubmit(handleSignUp)} className="space-y-4 pt-4">
+                        <FormField control={signupForm.control} name="instagramUsername" render={({ field }) => ( <FormItem><FormLabel>Instagram Username</FormLabel><FormControl><Input placeholder="your_insta_name" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={signupForm.control} name="email" render={({ field }) => ( <FormItem><FormLabel>Email</FormLabel><FormControl><Input type="email" placeholder="you@example.com" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <FormField control={signupForm.control} name="password" render={({ field }) => ( <FormItem><FormLabel>Password</FormLabel><FormControl><Input type="password" placeholder="••••••••" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                        <Button type="submit" className="w-full" disabled={isSubmitting}>
+                            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            {isSubmitting ? 'Creating Account...' : 'Sign Up'}
+                        </Button>
+                    </form>
+                </Form>
+            </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

@@ -29,15 +29,16 @@ export interface OrderItem {
   price: number;
   quantity: number;
   size: string;
+  productId: string;
 }
 
 export interface Order {
   id: string;
-  userId: string;
+  userAccountId: string;
   items: OrderItem[];
   totalAmount: number;
-  status: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
-  orderDate: number; // Stored as a timestamp
+  orderStatus: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  orderDate: string; // Stored as ISO string
   shippingAddress: {
     name: string;
     address: string;

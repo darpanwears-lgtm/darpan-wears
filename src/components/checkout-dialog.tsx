@@ -14,11 +14,11 @@ import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import type { Product, UserProfile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { useAuth } from '@/lib/auth-context';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { ScrollArea } from './ui/scroll-area';
 import { useRouter } from 'next/navigation';
+import { LoginDialog } from './login-dialog';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -40,10 +40,10 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
   const { toast } = useToast();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   
   const firestore = useFirestore();
   const { user, isUserLoading } = useUser();
-  const { signInWithGoogle } = useAuth();
   
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
@@ -68,16 +68,13 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
     }
   }, [userProfile, form]);
   
-  const handleGoogleSignIn = async () => {
-    const success = await signInWithGoogle();
-    if (!success) {
-      toast({
-        variant: 'destructive',
-        title: 'Sign-in Failed',
-        description: 'Could not sign you in with Google. Please try again.',
-      });
+  useEffect(() => {
+    if (open && !user && !isUserLoading) {
+      setIsLoginDialogOpen(true);
+    } else {
+      setIsLoginDialogOpen(false);
     }
-  };
+  }, [open, user, isUserLoading]);
 
 
   if (!product) {
@@ -101,12 +98,12 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
 
     try {
         const userProfileData = {
+            ...userProfile,
             uid: user.uid,
             name: values.name,
             address: values.address,
             phone: values.phone,
             email: user.email,
-            photoURL: user.photoURL,
         };
         setDoc(doc(firestore, 'users', user.uid), userProfileData, { merge: true }).catch(err => {
             console.error("Error saving user profile:", err);
@@ -120,8 +117,10 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
 
         const orderData = {
           userId: user.uid,
+          userAccountId: user.uid,
           items: [{
             id: product.id,
+            productId: product.id,
             name: product.name,
             price: product.price,
             quantity: 1,
@@ -130,39 +129,40 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
           }],
           totalAmount: total,
           status: 'Processing' as const,
-          orderDate: Date.now(),
+          orderDate: new Date().toISOString(),
           shippingAddress: {
             name: values.name,
             address: values.address,
             phone: values.phone,
-          }
+          },
+          orderStatus: 'Processing',
         };
         
         const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
         const docRef = await addDoc(ordersCollection, orderData);
         
-        const itemsSummary = `- ${product.name} (Size: ${selectedSize || 'N/A'}) - $${total.toFixed(2)}`;
-        
         const emailMessageBody = `
 New Order Received!
+
 Order ID: ${docRef.id}
-Customer ID: ${user.uid}
-Product ID: ${product.id}
+Customer: ${values.name} (${user.email})
 
-Customer Details:
-Name: ${values.name}
-Address: ${values.address}
-Phone: ${values.phone}
-Payment: ${values.paymentMethod}
+Shipping Address:
+${values.address}
+${values.phone}
 
-Order Item:
-${itemsSummary}
+Payment Method: ${values.paymentMethod}
 
-Total Amount: $${total.toFixed(2)}
+Item:
+- ${product.name}
+- Size: ${selectedSize || 'N/A'}
+- Price: ₹${total.toFixed(2)}
+
+Total: ₹${total.toFixed(2)}
         `.trim().replace(/^\s+/gm, '');
 
         const emailAddress = 'darpanwears@gmail.com';
-        const emailSubject = `New Order: ${docRef.id}`;
+        const emailSubject = `New Order Confirmation: ${docRef.id}`;
         const emailUrl = `mailto:${emailAddress}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailMessageBody)}`;
         
         toast({
@@ -182,6 +182,7 @@ Total Amount: $${total.toFixed(2)}
     } catch (error) {
         console.error("Error placing order:", error);
         
+        // This is a generic catch, but we can assume a permission error is likely
         const permissionError = new FirestorePermissionError({
             path: `users/${user.uid}/orders`,
             operation: 'create',
@@ -197,18 +198,10 @@ Total Amount: $${total.toFixed(2)}
       setIsSubmitting(false);
     }
   }
-  
-    const GoogleIcon = () => (
-    <svg className="mr-2 h-4 w-4" viewBox="0 0 48 48">
-      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
-      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
-      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.657-3.356-11.303-7.962l-6.571,4.819C9.656,39.663,16.318,44,24,44z"></path>
-      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.022,35.372,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
-    </svg>
-  );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <>
+    <Dialog open={open && !!user} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl p-0">
           <ScrollArea className="max-h-[85vh]">
             <div className="p-6">
@@ -218,15 +211,6 @@ Total Amount: $${total.toFixed(2)}
                 <div className="grid md:grid-cols-2 gap-8 items-start">
                     <div>
                         <h2 className="text-xl font-semibold mb-4">Shipping Information</h2>
-                        
-                        {!user && !isUserLoading && (
-                             <div className="flex flex-col items-center justify-center p-8 border rounded-md bg-muted/50 space-y-4 text-center">
-                                <p className="text-muted-foreground">Sign in to pre-fill your details and place an order.</p>
-                                <Button onClick={handleGoogleSignIn} variant="outline">
-                                    <GoogleIcon /> Sign in with Google
-                                </Button>
-                            </div>
-                        )}
                         
                         {(isUserLoading) && (
                             <div className="space-y-4">
@@ -304,11 +288,11 @@ Total Amount: $${total.toFixed(2)}
                                 </p>
                                 </div>
                             </div>
-                            <p className="font-medium">${total.toFixed(2)}</p>
+                            <p className="font-medium">₹{total.toFixed(2)}</p>
                         </div>
                         <div className="border-t pt-4 mt-4 flex items-center justify-between font-bold text-lg">
                             <p>Total</p>
-                            <p>${total.toFixed(2)}</p>
+                            <p>₹{total.toFixed(2)}</p>
                         </div>
                     </div>
                 </div>
@@ -316,5 +300,7 @@ Total Amount: $${total.toFixed(2)}
           </ScrollArea>
       </DialogContent>
     </Dialog>
+    <LoginDialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen} />
+    </>
   );
 }
