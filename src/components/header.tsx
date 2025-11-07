@@ -48,10 +48,19 @@ export function Header() {
     <>
       <header className="w-full border-b bg-background">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
-              <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={32} height={32} className="rounded-full" />
-              Darpan Wears
-          </Link>
+          {userProfile && userProfile.name ? (
+              <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
+                  <Avatar className="h-8 w-8">
+                      <AvatarFallback>{getInitials(userProfile.name)}</AvatarFallback>
+                  </Avatar>
+                  <span>{userProfile.name}</span>
+              </Link>
+          ) : (
+            <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
+                <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={32} height={32} className="rounded-full" />
+                Darpan Wears
+            </Link>
+          )}
 
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="flex items-center">
