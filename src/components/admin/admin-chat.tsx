@@ -2,8 +2,8 @@
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
-import type { Chat, ChatMessage } from '@/lib/types';
+import { collection, query, orderBy, addDoc, getDocs, collectionGroup } from 'firebase/firestore';
+import type { ChatMessage, UserProfile } from '@/lib/types';
 import { cn, generateColorFromString } from '@/lib/utils';
 import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Button } from '../ui/button';
@@ -26,7 +26,7 @@ function ChatBubble({ message, isSender, senderInitial, senderColor }: { message
             <div className={cn("max-w-xs md:max-w-md rounded-lg px-4 py-2", isSender ? "bg-primary text-primary-foreground" : "bg-muted")}>
                 <p className="text-sm">{message.text}</p>
                  <p className="text-xs text-right mt-1 opacity-70">
-                    {message.timestamp ? format(message.timestamp, 'p') : 'sending...'}
+                    {message.timestamp ? format(new Date(message.timestamp), 'p') : 'sending...'}
                 </p>
             </div>
              {isSender && (
@@ -38,20 +38,54 @@ function ChatBubble({ message, isSender, senderInitial, senderColor }: { message
     )
 }
 
+interface ChatSession {
+    userId: string;
+    userName: string;
+    lastMessage?: string;
+    lastMessageTimestamp?: number;
+}
+
 export function AdminChat() {
     const firestore = useFirestore();
     const { isAdmin } = useAuth();
     const { toast } = useToast();
-    const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+    const [selectedChat, setSelectedChat] = useState<ChatSession | null>(null);
     const [message, setMessage] = useState('');
     const [isSending, setIsSending] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const [chats, setChats] = useState<ChatSession[]>([]);
+    const [chatsLoading, setChatsLoading] = useState(true);
 
-    const chatsQuery = useMemoFirebase(
-        () => (firestore ? query(collection(firestore, 'chats'), orderBy('lastMessageTimestamp', 'desc')) : null),
-        [firestore]
-    );
-    const { data: chats, isLoading: chatsLoading } = useCollection<Chat>(chatsQuery);
+    useEffect(() => {
+        if (!firestore) return;
+
+        const fetchChats = async () => {
+            setChatsLoading(true);
+            const messagesQuery = query(collectionGroup(firestore, 'messages'), orderBy('timestamp', 'desc'));
+            const querySnapshot = await getDocs(messagesQuery);
+            
+            const chatSessions: { [key: string]: ChatSession } = {};
+
+            querySnapshot.forEach(doc => {
+                const message = doc.data() as ChatMessage;
+                if (!chatSessions[message.senderId] && message.senderId !== 'admin') {
+                    chatSessions[message.senderId] = {
+                        userId: message.senderId,
+                        userName: message.senderName || 'Unknown User',
+                        lastMessage: message.text,
+                        lastMessageTimestamp: message.timestamp,
+                    };
+                }
+            });
+            
+            const sortedChats = Object.values(chatSessions).sort((a,b) => (b.lastMessageTimestamp || 0) - (a.lastMessageTimestamp || 0));
+            setChats(sortedChats);
+            setChatsLoading(false);
+        };
+
+        fetchChats();
+    }, [firestore]);
+
 
     const messagesQuery = useMemoFirebase(
         () => (selectedChat && firestore ? query(collection(firestore, 'chats', selectedChat.userId, 'messages'), orderBy('timestamp', 'asc')) : null),
@@ -79,22 +113,15 @@ export function AdminChat() {
         setMessage('');
 
         const messagesColRef = collection(firestore, 'chats', selectedChat.userId, 'messages');
-        const chatDocRef = doc(firestore, 'chats', selectedChat.userId);
         
         const messageData = {
-            senderId: 'admin', // Special ID for admin
+            senderId: 'admin',
             text: messageText,
             timestamp: Date.now()
         };
 
-        const chatData = {
-            lastMessage: `Admin: ${messageText}`,
-            lastMessageTimestamp: Date.now(),
-        };
-
         try {
             await addDoc(messagesColRef, messageData);
-            await setDoc(chatDocRef, chatData, { merge: true });
         } catch (error) {
             console.error("Error sending message:", error);
             toast({ title: 'Error', description: 'Could not send message.', variant: 'destructive' });
@@ -112,8 +139,8 @@ export function AdminChat() {
                     <ScrollArea className="h-full">
                          {chatsLoading && <div className="p-4 flex justify-center items-center"><Loader2 className="h-6 w-6 animate-spin"/></div>}
                         {chats && chats.map(chat => (
-                            <div key={chat.id} 
-                                 className={cn("p-4 border-b cursor-pointer hover:bg-muted/50", selectedChat?.id === chat.id && "bg-muted")}
+                            <div key={chat.userId} 
+                                 className={cn("p-4 border-b cursor-pointer hover:bg-muted/50", selectedChat?.userId === chat.userId && "bg-muted")}
                                  onClick={() => setSelectedChat(chat)}
                             >
                                 <div className="flex items-center gap-3">
@@ -126,7 +153,7 @@ export function AdminChat() {
                                         <p className="font-semibold truncate">{chat.userName}</p>
                                         <p className="text-sm text-muted-foreground truncate">{chat.lastMessage}</p>
                                     </div>
-                                    <p className="text-xs text-muted-foreground self-start">{format(chat.lastMessageTimestamp, 'p')}</p>
+                                    {chat.lastMessageTimestamp && <p className="text-xs text-muted-foreground self-start">{format(new Date(chat.lastMessageTimestamp), 'p')}</p>}
                                 </div>
                             </div>
                         ))}

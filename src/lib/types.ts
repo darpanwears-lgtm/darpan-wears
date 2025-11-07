@@ -56,17 +56,10 @@ export interface UserProfile {
   phone?: string;
 }
 
-export interface Chat {
-  id: string; // Corresponds to user's UID
-  userId: string;
-  userName: string;
-  lastMessage: string;
-  lastMessageTimestamp: number;
-}
-
 export interface ChatMessage {
   id: string;
   senderId: string;
+  senderName?: string;
   text: string;
   timestamp: number;
 }

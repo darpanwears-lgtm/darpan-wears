@@ -1,7 +1,7 @@
 
 'use client';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, orderBy, addDoc, serverTimestamp, doc, setDoc } from 'firebase/firestore';
+import { collection, query, orderBy, addDoc } from 'firebase/firestore';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,8 @@ import { cn, generateColorFromString } from '@/lib/utils';
 import { format } from 'date-fns';
 import type { ChatMessage, UserProfile } from '@/lib/types';
 import { useDoc } from '@/firebase/firestore/use-doc';
+import { doc } from 'firebase/firestore';
+
 
 function ChatBubble({ message, isSender, senderInitial, senderColor }: { message: ChatMessage, isSender: boolean, senderInitial: string, senderColor: string }) {
     return (
@@ -26,7 +28,7 @@ function ChatBubble({ message, isSender, senderInitial, senderColor }: { message
             <div className={cn("max-w-xs md:max-w-md rounded-lg px-4 py-2", isSender ? "bg-primary text-primary-foreground" : "bg-muted")}>
                 <p className="text-sm">{message.text}</p>
                  <p className="text-xs text-right mt-1 opacity-70">
-                    {message.timestamp ? format(message.timestamp, 'p') : 'sending...'}
+                    {message.timestamp ? format(new Date(message.timestamp), 'p') : 'sending...'}
                 </p>
             </div>
              {isSender && (
@@ -85,29 +87,18 @@ export default function ChatPage() {
         setIsSending(true);
 
         const messagesColRef = collection(firestore, 'chats', user.uid, 'messages');
-        const chatDocRef = doc(firestore, 'chats', user.uid);
-        
         const messageText = message;
         setMessage('');
 
         const messageData = {
             senderId: user.uid,
+            senderName: userProfile?.name || 'Anonymous',
             text: messageText,
             timestamp: Date.now()
         };
 
-        const chatData = {
-            lastMessage: messageText,
-            lastMessageTimestamp: Date.now(),
-            userName: userProfile?.name || 'Anonymous',
-            userId: user.uid,
-        };
-
         try {
-            // First, add the message to the subcollection
             await addDoc(messagesColRef, messageData);
-            // Then, update the top-level chat document
-            await setDoc(chatDocRef, chatData, { merge: true });
         } catch (error) {
             console.error("Error sending message:", error);
             toast({ title: 'Error', description: 'Could not send message.', variant: 'destructive' });
