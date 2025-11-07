@@ -66,12 +66,12 @@ service cloud.firestore {
     
     /**
      * @description Collection group rule for 'orders'. This allows admins to query across all users' orders.
+     * This rule must be at the top level.
      */
     match /{path=**}/orders/{orderId} {
       // Admins can perform list (collection group query) and get operations on any order.
       allow list, get: if isSignedIn() && isAdmin();
     }
-
 
     /**
      * @description Rules for the /users/{userId} collection and its subcollections.
