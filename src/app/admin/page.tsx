@@ -9,7 +9,6 @@ import { LogOut } from 'lucide-react';
 import { useUser, useFirestore } from '@/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductList } from '@/components/admin/product-list';
-import { UserList } from '@/components/admin/user-list';
 import { useToast } from '@/hooks/use-toast';
 
 export default function AdminPage() {
@@ -63,19 +62,15 @@ export default function AdminPage() {
       </div>
       
        <Tabs defaultValue="manage-products">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="manage-products">Manage Products</TabsTrigger>
           <TabsTrigger value="add-product">Add Product</TabsTrigger>
-          <TabsTrigger value="customers">Customers</TabsTrigger>
         </TabsList>
         <TabsContent value="manage-products" className="mt-6">
             <ProductList />
         </TabsContent>
         <TabsContent value="add-product" className="mt-6">
-          <ProductForm />
-        </TabsContent>
-        <TabsContent value="customers" className="mt-6">
-          <UserList />
+          <ProductForm product={null} />
         </TabsContent>
       </Tabs>
     </div>

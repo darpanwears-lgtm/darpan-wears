@@ -70,8 +70,7 @@ service cloud.firestore {
     match /users/{userId} {
       // Users can only read and write their own profile document.
       allow read, write: if isOwner(userId);
-      // Admins can list all user profiles.
-      allow list: if isAdmin();
+      allow list: if false; // Prevent listing all users
 
       /**
        * @description Rules for the orders subcollection. This controls direct access within a user's path.
