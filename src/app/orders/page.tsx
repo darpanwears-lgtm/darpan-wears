@@ -1,23 +1,27 @@
 
 'use client';
-import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/lib/auth-context';
+import { useUser, useFirestore, useCollection, useMemoFirebase, FirestorePermissionError, errorEmitter } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
 import { collectionGroup, query, orderBy, doc, updateDoc, FirestoreError } from 'firebase/firestore';
 import type { Order } from '@/lib/types';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { useToast } from '@/hooks/use-toast';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { format } from 'date-fns';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { errorEmitter, FirestorePermissionError } from '@/firebase';
 
 const statusOptions: Order['status'][] = ['Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
-export function OrderList() {
+function OrderList() {
     const firestore = useFirestore();
     const ordersQuery = useMemoFirebase(() => (firestore ? query(collectionGroup(firestore, 'orders'), orderBy('orderDate', 'desc')) : null), [firestore]);
-    const { data: orders, isLoading, error } = useCollection<Order>(ordersQuery);
+    const { data: orders, isLoading } = useCollection<Order>(ordersQuery);
     const { toast } = useToast();
 
     const handleStatusChange = async (order: Order, newStatus: Order['status']) => {
@@ -49,7 +53,7 @@ export function OrderList() {
                     <CardDescription>View and update the status of all orders.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+                    {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
                 </CardContent>
             </Card>
         )
@@ -74,11 +78,11 @@ export function OrderList() {
                                         </div>
                                         <p className="text-lg font-bold">${order.totalAmount.toFixed(2)}</p>
                                         <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                            (order.status || '') === 'Delivered' ? 'bg-green-100 text-green-800' :
-                                            (order.status || '') === 'Cancelled' ? 'bg-red-100 text-red-800' :
-                                            (order.status || '') === 'Shipped' ? 'bg-yellow-100 text-yellow-800' :
+                                            order.status === 'Delivered' ? 'bg-green-100 text-green-800' :
+                                            order.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                                            order.status === 'Shipped' ? 'bg-yellow-100 text-yellow-800' :
                                             'bg-blue-100 text-blue-800'
-                                        }`}>{order.status || 'N/A'}</div>
+                                        }`}>{order.status}</div>
                                     </div>
                                 </AccordionTrigger>
                                 <AccordionContent>
@@ -113,7 +117,7 @@ export function OrderList() {
                                          <div className="md:col-span-2">
                                             <h4 className="font-semibold mb-2">Update Status</h4>
                                              <div className="flex items-center gap-4">
-                                                <Select value={order.status || ''} onValueChange={(newStatus: Order['status']) => handleStatusChange(order, newStatus)}>
+                                                <Select value={order.status} onValueChange={(newStatus: Order['status']) => handleStatusChange(order, newStatus)}>
                                                     <SelectTrigger className="w-[180px]">
                                                         <SelectValue placeholder="Change status" />
                                                     </SelectTrigger>
@@ -136,4 +140,54 @@ export function OrderList() {
             </CardContent>
         </Card>
     );
+}
+
+export default function OrdersPage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const { isAdmin, isAuthLoading, logout } = useAuth();
+  const { isUserLoading: isFirebaseUserLoading } = useUser();
+
+  useEffect(() => {
+    if (isAuthLoading || isFirebaseUserLoading) return;
+    
+    if (!isAdmin) {
+      toast({
+        title: 'Access Denied',
+        description: 'You must be an admin to view this page.',
+        variant: 'destructive',
+      });
+      router.push('/');
+    }
+  }, [isAdmin, isAuthLoading, isFirebaseUserLoading, router, toast]);
+
+  const handleLogout = () => {
+    logout();
+    toast({
+        title: "Logged Out",
+        description: "You have been successfully logged out."
+    });
+    router.push('/');
+  }
+
+  if (isAuthLoading || isFirebaseUserLoading || !isAdmin) {
+    return (
+        <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
+            <p>Verifying admin access...</p>
+        </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold font-headline">All Orders</h1>
+        <Button variant="ghost" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+        </Button>
+      </div>
+      <OrderList />
+    </div>
+  );
 }
