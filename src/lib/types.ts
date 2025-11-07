@@ -55,11 +55,3 @@ export interface UserProfile {
   address?: string;
   phone?: string;
 }
-
-export interface ChatMessage {
-  id: string;
-  senderId: string;
-  senderName?: string;
-  text: string;
-  timestamp: number;
-}

@@ -10,7 +10,6 @@ import { useUser, useFirestore } from '@/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductList } from '@/components/admin/product-list';
 import { useToast } from '@/hooks/use-toast';
-import { AdminChat } from '@/components/admin/admin-chat';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -63,19 +62,15 @@ export default function AdminPage() {
       </div>
       
        <Tabs defaultValue="manage-products">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="manage-products">Manage Products</TabsTrigger>
           <TabsTrigger value="add-product">Add Product</TabsTrigger>
-          <TabsTrigger value="chats">Customer Chats</TabsTrigger>
         </TabsList>
         <TabsContent value="manage-products" className="mt-6">
             <ProductList />
         </TabsContent>
         <TabsContent value="add-product" className="mt-6">
           <ProductForm />
-        </TabsContent>
-         <TabsContent value="chats" className="mt-6">
-          <AdminChat />
         </TabsContent>
       </Tabs>
     </div>

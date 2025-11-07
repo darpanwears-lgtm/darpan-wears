@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { User, Instagram, KeyRound, ShoppingBag, MessageSquare } from 'lucide-react';
+import { User, Instagram, KeyRound, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FacebookIcon } from './icons/facebook';
 import { WhatsAppIcon } from './icons/whatsapp';
@@ -54,14 +54,6 @@ export function Header() {
     }
   };
   
-  const handleChatClick = () => {
-     if (user) {
-      router.push('/chat');
-    } else {
-      setIsLoginDialogOpen(true);
-    }
-  }
-
   const handleAdminClick = () => {
     if (isAdmin) {
       router.push('/admin');
@@ -123,11 +115,6 @@ export function Header() {
                 <span className="sr-only">Account</span>
               </Button>
               
-               <Button variant="ghost" size="sm" onClick={handleChatClick}>
-                <MessageSquare className="h-5 w-5" />
-                <span className="sr-only">Chat</span>
-              </Button>
-
               {isAdmin && (
                 <Button asChild variant="ghost" size="sm">
                   <Link href="/orders">
