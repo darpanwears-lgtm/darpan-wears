@@ -3,7 +3,6 @@
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collectionGroup, query, orderBy, doc, updateDoc, FirestoreError } from 'firebase/firestore';
 import type { Order } from '@/lib/types';
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
@@ -34,7 +33,6 @@ export function OrderList() {
                 });
             })
             .catch((error: FirestoreError) => {
-                console.error('Error updating order status:', error);
                 const permissionError = new FirestorePermissionError({
                     path: orderRef.path,
                     operation: 'update',
@@ -116,7 +114,7 @@ export function OrderList() {
                                          <div className="md:col-span-2">
                                             <h4 className="font-semibold mb-2">Update Status</h4>
                                              <div className="flex items-center gap-4">
-                                                <Select value={order.status} onValueChange={(newStatus: Order['status']) => handleStatusChange(order, newStatus)}>
+                                                <Select value={order.status || ''} onValueChange={(newStatus: Order['status']) => handleStatusChange(order, newStatus)}>
                                                     <SelectTrigger className="w-[180px]">
                                                         <SelectValue placeholder="Change status" />
                                                     </SelectTrigger>
