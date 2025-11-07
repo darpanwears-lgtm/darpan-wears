@@ -17,10 +17,9 @@ import { FileEdit, Trash2, Link as LinkIcon } from 'lucide-react';
 import { errorEmitter, FirestorePermissionError } from '@/firebase';
 import Link from 'next/link';
 
-export function ProductList() {
+// A single row in the product list
+function ProductRow({ product }: { product: Product }) {
     const firestore = useFirestore();
-    const productsCollection = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
-    const { data: products, isLoading } = useCollection<Product>(productsCollection);
     const { toast } = useToast();
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -48,6 +47,71 @@ export function ProductList() {
             });
         }
     };
+
+    const imageUrl = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : `https://picsum.photos/seed/${product.id}/48/48`;
+
+    return (
+        <TableRow>
+            <TableCell>
+                <Image src={imageUrl} alt={product.name} width={48} height={48} className="rounded-md object-cover" />
+            </TableCell>
+            <TableCell className="font-medium">{product.name}</TableCell>
+            <TableCell>${product.price.toFixed(2)}</TableCell>
+            <TableCell>{product.stockQuantity}</TableCell>
+            <TableCell>
+                {product.productLink ? (
+                    <Button asChild variant="ghost" size="icon">
+                        <Link href={product.productLink} target="_blank" rel="noopener noreferrer">
+                            <LinkIcon className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                ) : (
+                    <span className="text-muted-foreground">-</span>
+                )}
+            </TableCell>
+            <TableCell className="text-right">
+                <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <FileEdit className="h-4 w-4" />
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-3xl">
+                        <DialogHeader>
+                            <DialogTitle>Edit: {product.name}</DialogTitle>
+                        </DialogHeader>
+                        <ProductForm product={product} onSuccess={() => setIsEditDialogOpen(false)} />
+                    </DialogContent>
+                </Dialog>
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the product from your store.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDelete(product.id)}>Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            </TableCell>
+        </TableRow>
+    );
+}
+
+
+export function ProductList() {
+    const firestore = useFirestore();
+    const productsCollection = useMemoFirebase(() => (firestore ? collection(firestore, 'products') : null), [firestore]);
+    const { data: products, isLoading } = useCollection<Product>(productsCollection);
 
     if (isLoading) {
         return (
@@ -94,64 +158,9 @@ export function ProductList() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {products.map((product) => {
-                                const imageUrl = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : `https://picsum.photos/seed/${product.id}/48/48`;
-                                return (
-                                    <TableRow key={product.id}>
-                                        <TableCell>
-                                            <Image src={imageUrl} alt={product.name} width={48} height={48} className="rounded-md object-cover" />
-                                        </TableCell>
-                                        <TableCell className="font-medium">{product.name}</TableCell>
-                                        <TableCell>${product.price.toFixed(2)}</TableCell>
-                                        <TableCell>{product.stockQuantity}</TableCell>
-                                        <TableCell>
-                                            {product.productLink ? (
-                                                <Button asChild variant="ghost" size="icon">
-                                                    <Link href={product.productLink} target="_blank" rel="noopener noreferrer">
-                                                        <LinkIcon className="h-4 w-4" />
-                                                    </Link>
-                                                </Button>
-                                            ) : (
-                                                <span className="text-muted-foreground">-</span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon">
-                                                        <FileEdit className="h-4 w-4" />
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent className="max-w-3xl">
-                                                    <DialogHeader>
-                                                        <DialogTitle>Edit: {product.name}</DialogTitle>
-                                                    </DialogHeader>
-                                                    <ProductForm product={product} onSuccess={() => setIsEditDialogOpen(false)} />
-                                                </DialogContent>
-                                            </Dialog>
-                                            <AlertDialog>
-                                                <AlertDialogTrigger asChild>
-                                                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
-                                                </AlertDialogTrigger>
-                                                <AlertDialogContent>
-                                                    <AlertDialogHeader>
-                                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                            This action cannot be undone. This will permanently delete the product from your store.
-                                                        </AlertDialogDescription>
-                                                    </AlertDialogHeader>
-                                                    <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDelete(product.id)}>Delete</AlertDialogAction>
-                                                    </AlertDialogFooter>
-                                                </AlertDialogContent>
-                                            </AlertDialog>
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            )}
+                            {products.map((product) => (
+                                <ProductRow key={product.id} product={product} />
+                            ))}
                         </TableBody>
                     </Table>
                  ) : (
