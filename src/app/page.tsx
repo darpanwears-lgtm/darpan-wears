@@ -86,10 +86,36 @@ export default function Home() {
 
   }, [products, searchTerm, category, priceRange, sortBy]);
 
+  const heroImages = [
+    "https://images.unsplash.com/photo-1483985988355-763728e1935b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwc2hvcHBpbmd8ZW58MHx8fHwxNzYyNDU0MjUxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+    "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxmYXNoaW9uJTIwbW9kZWxzfGVufDB8fHx8MTc2MjQ1NDMyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+    "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxmYXNoaW9uJTIwbW9kZWx8ZW58MHx8fHwxNzYyNDU0MzI3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+  ]
+
 
   return (
     <div className="flex flex-col flex-grow">
-      <section className="relative h-[50vh] sm:h-[60vh] w-full flex items-center justify-center text-center text-white">
+      <section className="relative h-[50vh] sm:h-[60vh] w-full flex items-center justify-center text-center text-white overflow-hidden">
+         <Carousel
+          plugins={[Autoplay({ delay: 5000, stopOnInteraction: false })]}
+          className="absolute inset-0 w-full h-full"
+        >
+          <CarouselContent>
+            {heroImages.map((src, index) => (
+              <CarouselItem key={index}>
+                <Image
+                  src={src}
+                  alt={`Hero Image ${index + 1}`}
+                  fill
+                  className="object-cover"
+                  priority={index === 0}
+                  data-ai-hint="fashion model"
+                />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+        <div className="absolute inset-0 bg-black/50" />
         <div className="relative z-10 p-4 flex flex-col items-center">
             <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={80} height={80} className="rounded-full mb-4" />
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold font-headline mb-4 leading-tight">
