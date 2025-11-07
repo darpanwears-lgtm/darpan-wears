@@ -6,16 +6,50 @@ import { Button } from '@/components/ui/button';
 import { FacebookIcon } from './icons/facebook';
 import { WhatsAppIcon } from './icons/whatsapp';
 import Image from 'next/image';
+import { useUser } from '@/firebase';
+import { useFirestore, useMemoFirebase } from '@/firebase/provider';
+import { useDoc } from '@/firebase/firestore/use-doc';
+import type { UserProfile } from '@/lib/types';
+import { doc } from 'firebase/firestore';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export function Header() {
+  const { user } = useUser();
+  const firestore = useFirestore();
+
+  const userProfileRef = useMemoFirebase(
+    () => (user && firestore ? doc(firestore, 'users', user.uid) : null),
+    [user, firestore]
+  );
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
+  
+  const getInitials = (name: string | undefined | null) => {
+    if (!name) return '';
+    const names = name.split(' ');
+    return names
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase();
+  };
+
   return (
     <>
       <header className="w-full border-b bg-background">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
-            <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={32} height={32} className="rounded-full" />
-            Darpan Wears
-          </Link>
+          {userProfile && userProfile.name ? (
+              <Link href="/account" className="flex items-center gap-2 font-bold text-lg font-headline">
+                 <Avatar>
+                    <AvatarFallback>{getInitials(userProfile.name)}</AvatarFallback>
+                </Avatar>
+                <span>{userProfile.name}</span>
+              </Link>
+          ) : (
+            <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
+              <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={32} height={32} className="rounded-full" />
+              Darpan Wears
+            </Link>
+          )}
+
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="flex items-center">
               <Link href="https://www.instagram.com/darpan_wears?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer">
