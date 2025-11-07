@@ -89,6 +89,11 @@
         "phone": {
           "type": "string",
           "description": "The user's phone number."
+        },
+        "photoURL": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL of the user's profile picture."
         }
       },
       "required": [
@@ -160,7 +165,8 @@
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "anonymous",
+      "google.com"
     ]
   },
   "firestore": {

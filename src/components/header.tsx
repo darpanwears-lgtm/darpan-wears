@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -12,7 +11,7 @@ import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { useDoc } from '@/firebase/firestore/use-doc';
 import type { UserProfile } from '@/lib/types';
 import { doc } from 'firebase/firestore';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AccountDialog } from './account-dialog';
 import { useState } from 'react';
 import { LoginDialog } from './login-dialog';
@@ -73,6 +72,7 @@ export function Header() {
           {userProfile && userProfile.name ? (
               <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
                   <Avatar className="h-8 w-8">
+                      <AvatarImage src={userProfile.photoURL ?? undefined} alt={userProfile.name} />
                       <AvatarFallback style={{ backgroundColor: avatarColor, color: 'white' }}>{userInitial}</AvatarFallback>
                   </Avatar>
                   <span>{userProfile.name}</span>
@@ -105,8 +105,9 @@ export function Header() {
                 </Button>
               </Link>
               <Button variant="ghost" size="sm" onClick={handleAccountClick}>
-                {userProfile && userProfile.name ? (
+                {userProfile ? (
                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={userProfile.photoURL ?? undefined} alt={userProfile.name} />
                       <AvatarFallback style={{ backgroundColor: avatarColor, color: 'white' }}>{userInitial}</AvatarFallback>
                   </Avatar>
                 ) : (

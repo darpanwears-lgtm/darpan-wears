@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useUser, useAuth, useCollection } from '@/firebase';
+import { useUser, useCollection } from '@/firebase';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
 import { doc, setDoc, getDoc, updateDoc, collection, query, orderBy } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
@@ -19,6 +19,7 @@ import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ScrollArea } from './ui/scroll-area';
+import { useAuth } from '@/lib/auth-context';
 
 
 function ProfileTab() {
@@ -44,7 +45,11 @@ function ProfileTab() {
             if (docSnap.exists()) {
                 setProfile(docSnap.data() as UserProfile);
             } else if (user) {
-                setProfile({ email: user.email || '' });
+                setProfile({ 
+                    email: user.email || '',
+                    name: user.displayName || '',
+                    photoURL: user.photoURL || ''
+                });
             }
         } catch (error) {
             console.error("Error fetching user profile:", error);
@@ -65,7 +70,7 @@ function ProfileTab() {
     if (!userProfileRef || !user) return;
     setIsSaving(true);
     try {
-        const profileData = { ...profile, uid: user.uid };
+        const profileData = { ...profile, uid: user.uid, name: profile.name || user.displayName, email: profile.email || user.email };
         await setDoc(userProfileRef, profileData, { merge: true });
         toast({ title: 'Success', description: 'Your profile has been updated.' });
     } catch (error) {
@@ -95,7 +100,7 @@ function ProfileTab() {
           </div>
           <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
-              <Input id="email" name="email" type="email" value={profile.email || ''} onChange={handleInputChange} />
+              <Input id="email" name="email" type="email" value={profile.email || ''} onChange={handleInputChange} disabled/>
           </div>
            <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
@@ -221,19 +226,19 @@ interface AccountDialogProps {
 export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
-  const auth = useAuth();
+  const firebaseAuth = useFirebaseAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     if (!isUserLoading && !user) {
       onOpenChange(false);
-      router.push('/login');
+      router.push('/');
     }
   }, [user, isUserLoading, router, onOpenChange]);
   
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await signOut(firebaseAuth);
       onOpenChange(false);
       router.push('/');
       toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });

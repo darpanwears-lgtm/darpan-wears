@@ -3,13 +3,22 @@
 import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useUser, useAuth as useFirebaseAuth, useFirestore } from '@/firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
+import { 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    signOut, 
+    GoogleAuthProvider, 
+    signInWithPopup
+} from 'firebase/auth';
 import { setDoc, doc, getDoc } from 'firebase/firestore';
+import type { UserProfile } from './types';
+
 
 interface AdminAuthContextType {
   isAdmin: boolean;
   login: (password: string) => Promise<boolean>;
   logout: () => void;
+  signInWithGoogle: () => Promise<boolean>;
   isAuthLoading: boolean;
 }
 
@@ -62,7 +71,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
     } catch (error: any) {
         if (error.code === 'auth/user-not-found') {
-            // If user doesn't exist, create them. This is for first-time setup.
             try {
                 const userCredential = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, password);
                 const newUser = userCredential.user;
@@ -76,17 +84,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 return false;
             }
         } else {
-            // Handle other errors (like wrong password) without trying to create a user.
             console.error("Admin login failed:", error);
             setIsAuthLoading(false);
             return false;
         }
     }
 
-    // This part runs after a successful sign-in or creation.
     const currentUser = auth.currentUser;
     if (currentUser && firestore) {
-        // Ensure the admin role exists on every successful login.
         const adminRoleRef = doc(firestore, 'roles_admin', currentUser.uid);
         await setDoc(adminRoleRef, { isAdmin: true }, { merge: true });
         setIsAdmin(true);
@@ -100,6 +105,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return true;
   };
 
+  const signInWithGoogle = async (): Promise<boolean> => {
+    if (!auth || !firestore) return false;
+    setIsAuthLoading(true);
+    const provider = new GoogleAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const gUser = result.user;
+        const userProfileRef = doc(firestore, 'users', gUser.uid);
+        
+        const profileData: UserProfile = {
+            uid: gUser.uid,
+            name: gUser.displayName || 'New User',
+            email: gUser.email || '',
+            photoURL: gUser.photoURL || '',
+        };
+        
+        await setDoc(userProfileRef, profileData, { merge: true });
+        setIsAuthLoading(false);
+        return true;
+    } catch (error) {
+        console.error("Google sign-in failed:", error);
+        setIsAuthLoading(false);
+        return false;
+    }
+  };
+
+
   const logout = () => {
     signOut(auth).then(() => {
         setIsAdmin(false);
@@ -109,7 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const value = { isAdmin, login, logout, isAuthLoading };
+  const value = { isAdmin, login, logout, isAuthLoading, signInWithGoogle };
 
   return (
     <AuthContext.Provider value={value}>

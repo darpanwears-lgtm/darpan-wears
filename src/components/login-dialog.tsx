@@ -1,18 +1,9 @@
-
 'use client';
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import { useUser, useAuth as useFirebaseAuth, useFirestore } from '@/firebase';
-import { signInAnonymously } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
 import {
   Dialog,
   DialogContent,
@@ -20,14 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-
-
-const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email." }).or(z.literal('')).optional(),
-  name: z.string().min(2, { message: "Name is required."}),
-  address: z.string().min(5, { message: "Address is required."}),
-  phone: z.string().min(10, { message: "Phone number is required."}),
-});
+import { useAuth } from '@/lib/auth-context';
 
 interface LoginDialogProps {
   open: boolean;
@@ -35,64 +19,43 @@ interface LoginDialogProps {
 }
 
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
-  const auth = useFirebaseAuth();
-  const firestore = useFirestore();
+  const { signInWithGoogle } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: { email: '', name: '', address: '', phone: '' },
-  });
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
+  const handleGoogleSignIn = async () => {
     setIsSubmitting(true);
-    if (!auth || !firestore) {
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Firebase is not ready. Please try again in a moment.",
-        });
-        setIsSubmitting(false);
-        return;
-    }
     try {
-        let currentUser = auth.currentUser;
-        if (!currentUser) {
-            const userCredential = await signInAnonymously(auth);
-            currentUser = userCredential.user;
-        }
-        
-        const userProfile = {
-            uid: currentUser.uid,
-            name: values.name,
-            address: values.address,
-            phone: values.phone,
-            email: values.email || '',
-        };
-        
-        const userProfileRef = doc(firestore, 'users', currentUser.uid);
-        await setDoc(userProfileRef, userProfile, { merge: true });
-        
+      const success = await signInWithGoogle();
+      if (success) {
         toast({
-            title: "Login Successful",
-            description: "Your information has been saved.",
+          title: "Login Successful",
+          description: "Welcome back!",
         });
-        
-        onOpenChange(false); // Close dialog on success
-        form.reset();
-
+        onOpenChange(false);
+      } else {
+        throw new Error("Google sign-in was not successful.");
+      }
     } catch (error) {
-        console.error("Login failed:", error);
-        toast({
-            variant: "destructive",
-            title: "Login Failed",
-            description: "Could not sign you in. Please try again.",
-        });
+      console.error("Login failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Login Failed",
+        description: "Could not sign you in with Google. Please try again.",
+      });
     } finally {
-        setIsSubmitting(false);
+      setIsSubmitting(false);
     }
   }
+  
+  const GoogleIcon = () => (
+    <svg className="mr-2 h-4 w-4" viewBox="0 0 48 48">
+      <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"></path>
+      <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"></path>
+      <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.222,0-9.657-3.356-11.303-7.962l-6.571,4.819C9.656,39.663,16.318,44,24,44z"></path>
+      <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.022,35.372,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z"></path>
+    </svg>
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -100,53 +63,24 @@ export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold font-headline text-center">Welcome</DialogTitle>
           <DialogDescription className="text-center">
-            Sign in or create an account to continue.
+            Sign in to continue to Darpan Wears.
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField control={form.control} name="name" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="John Doe" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-             <FormField control={form.control} name="email" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Email (Optional)</FormLabel>
-                <FormControl>
-                  <Input type="email" placeholder="you@example.com" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-             <FormField control={form.control} name="address" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Address</FormLabel>
-                <FormControl>
-                  <Input placeholder="123 Main St" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-             <FormField control={form.control} name="phone" render={({ field }) => (
-              <FormItem>
-                <FormLabel>Phone Number</FormLabel>
-                <FormControl>
-                  <Input type="tel" placeholder="123-456-7890" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )} />
-            <Button type="submit" className="w-full" style={{ backgroundColor: 'var(--accent)', color: 'var(--accent-foreground)' }} disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isSubmitting ? 'Saving...' : 'Save & Continue'}
+        <div className="space-y-4 py-4">
+           <Button
+              variant="outline"
+              className="w-full"
+              onClick={handleGoogleSignIn}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <GoogleIcon />
+              )}
+              {isSubmitting ? 'Signing in...' : 'Sign in with Google'}
             </Button>
-          </form>
-        </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );
