@@ -55,3 +55,18 @@ export interface UserProfile {
   address?: string;
   phone?: string;
 }
+
+export interface Chat {
+  id: string; // Corresponds to user's UID
+  userId: string;
+  userName: string;
+  lastMessage: string;
+  lastMessageTimestamp: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string;
+  text: string;
+  timestamp: number;
+}

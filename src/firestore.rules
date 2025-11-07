@@ -1,22 +1,25 @@
+
 /**
  * @fileoverview Firestore Security Rules for Darpan Wears Mobile Shop.
  *
  * Core Philosophy:
  * This ruleset implements a role-based access control system where all users can read product information,
  * but only users with a designated admin role can create, update, or delete products.
- * Customer can manage their own profile data and order history. Admins can manage all orders.
+ * Customer can manage their own profile data, order history, and chats. Admins can manage all orders and chats.
  *
  * Data Structure:
  * - /products/{productId}: Stores publicly readable product information.
  * - /roles_admin/{userId}: Indicates admin privileges.
  * - /users/{userId}: Stores customer profile information.
  * - /users/{userId}/orders/{orderId}: Stores order history for a specific user.
+ * - /chats/{userId}: Metadata for a chat session.
+ * - /chats/{userId}/messages/{messageId}: Messages within a chat session.
  *
  * Key Security Decisions:
  * - Public read access to the /products collection to enable product browsing.
  * - Administrative privileges are determined by the presence of a document in the `/roles_admin/{userId}` collection.
  * - Customer can only access their own data in `/users/{userId}` and its subcollections.
- * - Admins have read and update access to all orders across all users via a collection group query.
+ * - Admins have read access to all orders and chats.
  *
  */
 rules_version = '2';
@@ -87,6 +90,27 @@ service cloud.firestore {
                           || request.resource.data.keys().hasAll(['rating', 'review'])
                           || request.resource.data.keys().hasAll(['rating'])
                         )) || isAdmin();
+      }
+    }
+    
+     /**
+     * @description Rules for the /chats collection.
+     */
+    match /chats/{userId} {
+      // Admin can list all chats. User can access their own chat document.
+      allow get, write: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
+
+      /**
+       * @description Rules for the messages subcollection.
+       */
+      match /messages/{messageId} {
+        // User can read their own messages. Admin can read all messages.
+        allow read: if isOwner(userId) || isAdmin();
+        
+        // User can create messages in their own chat. Admin can create messages in any chat.
+        allow create: if (isOwner(userId) && request.resource.data.senderId == userId)
+                      || (isAdmin() && request.resource.data.senderId == 'admin');
       }
     }
 
