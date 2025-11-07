@@ -16,6 +16,7 @@ import type { UserProfile, Order } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from 'date-fns';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 
@@ -211,22 +212,28 @@ function OrdersTab() {
     )
 }
 
-export default function AccountPage() {
+interface AccountDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
   const router = useRouter();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isUserLoading) return;
-    if (!user) {
+    if (!isUserLoading && !user) {
+      onOpenChange(false);
       router.push('/login');
     }
-  }, [user, isUserLoading, router]);
+  }, [user, isUserLoading, router, onOpenChange]);
   
   const handleLogout = async () => {
     try {
       await signOut(auth);
+      onOpenChange(false);
       router.push('/');
       toast({ title: 'Logged Out', description: 'You have been successfully logged out.' });
     } catch (error) {
@@ -236,32 +243,18 @@ export default function AccountPage() {
   };
 
   if (isUserLoading || !user) {
-    return (
-        <div className="container mx-auto px-4 py-8">
-            <Card className="max-w-2xl mx-auto">
-                <CardHeader>
-                    <Skeleton className="h-8 w-48" />
-                    <Skeleton className="h-4 w-64" />
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-10 w-full" /></div>
-                    <div className="space-y-2"><Skeleton className="h-4 w-24" /><Skeleton className="h-10 w-full" /></div>
-                </CardContent>
-            </Card>
-        </div>
-    )
+    return null; // Don't render dialog while loading or if no user
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="profile" className="max-w-2xl mx-auto">
-             <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h1 className="text-2xl font-bold">My Account</h1>
-                  <p className="text-muted-foreground">Manage your profile, orders, and settings.</p>
-                </div>
-                <Button variant="ghost" onClick={handleLogout}>Logout</Button>
-            </div>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>My Account</DialogTitle>
+          <DialogDescription>Manage your profile, orders, and settings.</DialogDescription>
+        </DialogHeader>
+        
+        <Tabs defaultValue="profile" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="profile">Profile</TabsTrigger>
                 <TabsTrigger value="orders">My Orders</TabsTrigger>
@@ -285,6 +278,16 @@ export default function AccountPage() {
                 </Card>
             </TabsContent>
         </Tabs>
-    </div>
+
+        <DialogFooter className="sm:justify-between pt-4">
+             <Button variant="ghost" onClick={handleLogout}>Logout</Button>
+            <DialogClose asChild>
+                <Button type="button">
+                    Continue Shopping
+                </Button>
+            </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

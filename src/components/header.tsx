@@ -12,10 +12,13 @@ import { useDoc } from '@/firebase/firestore/use-doc';
 import type { UserProfile } from '@/lib/types';
 import { doc } from 'firebase/firestore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { AccountDialog } from './account-dialog';
+import { useState } from 'react';
 
 export function Header() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const [isAccountDialogOpen, setIsAccountDialogOpen] = useState(false);
 
   const userProfileRef = useMemoFirebase(
     () => (user && firestore ? doc(firestore, 'users', user.uid) : null),
@@ -32,23 +35,23 @@ export function Header() {
       .toUpperCase();
   };
 
+  const handleAccountClick = () => {
+    if (user) {
+      setIsAccountDialogOpen(true);
+    } else {
+      // Redirect to login if not authenticated
+      window.location.href = '/login';
+    }
+  };
+
   return (
     <>
       <header className="w-full border-b bg-background">
         <div className="container mx-auto flex h-14 items-center justify-between px-4">
-          {userProfile && userProfile.name ? (
-              <Link href="/account" className="flex items-center gap-2 font-bold text-lg font-headline">
-                 <Avatar>
-                    <AvatarFallback>{getInitials(userProfile.name)}</AvatarFallback>
-                </Avatar>
-                <span>{userProfile.name}</span>
-              </Link>
-          ) : (
-            <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
+          <Link href="/" className="flex items-center gap-2 font-bold text-lg font-headline">
               <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={32} height={32} className="rounded-full" />
               Darpan Wears
-            </Link>
-          )}
+          </Link>
 
           <div className="flex items-center gap-1 sm:gap-2">
             <div className="flex items-center">
@@ -70,12 +73,16 @@ export function Header() {
                   <span className="sr-only">WhatsApp</span>
                 </Button>
               </Link>
-              <Link href={'/account'}>
-                <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" onClick={handleAccountClick}>
+                {userProfile && userProfile.name ? (
+                   <Avatar className="h-8 w-8">
+                      <AvatarFallback>{getInitials(userProfile.name)}</AvatarFallback>
+                  </Avatar>
+                ) : (
                   <User className="h-5 w-5" />
-                  <span className="sr-only">Account</span>
-                </Button>
-              </Link>
+                )}
+                <span className="sr-only">Account</span>
+              </Button>
                <Link href={'/admin/login'}>
                 <Button variant="ghost" size="sm">
                   <KeyRound className="h-5 w-5" />
@@ -86,6 +93,7 @@ export function Header() {
           </div>
         </div>
       </header>
+      <AccountDialog open={isAccountDialogOpen} onOpenChange={setIsAccountDialogOpen} />
     </>
   );
 }
