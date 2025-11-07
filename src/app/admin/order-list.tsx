@@ -23,7 +23,7 @@ export function OrderList() {
     const { toast } = useToast();
 
     const handleStatusChange = async (order: Order, newStatus: Order['status']) => {
-        if (!firestore) return;
+        if (!firestore || !order.userId || !order.id) return;
         const orderRef = doc(firestore, 'users', order.userId, 'orders', order.id);
         
         updateDoc(orderRef, { status: newStatus })
@@ -41,11 +41,6 @@ export function OrderList() {
                     requestResourceData: { status: newStatus },
                 });
                 errorEmitter.emit('permission-error', permissionError);
-                toast({
-                    variant: 'destructive',
-                    title: 'Error',
-                    description: 'Could not update order status. Check permissions.',
-                });
             });
     };
     
