@@ -12,15 +12,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import Image from 'next/image';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Suspense, useState, useEffect } from 'react';
-import { useDoc, useUser, useAuth } from '@/firebase';
+import { useDoc, useUser, useAuth, FirestorePermissionError, errorEmitter } from '@/firebase';
 import { doc, addDoc, collection, setDoc } from 'firebase/firestore';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
-import type { Product } from '@/lib/types';
+import type { Product, UserProfile } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { errorEmitter, FirestorePermissionError } from '@/firebase';
 import { Loader2 } from 'lucide-react';
-import type { UserProfile } from '@/lib/types';
 import { signInAnonymously, type User } from 'firebase/auth';
 
 
@@ -43,7 +41,7 @@ function CheckoutForm() {
   
   const firestore = useFirestore();
   const auth = useAuth();
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
   
   const userProfileRef = useMemoFirebase(
     () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
@@ -55,7 +53,7 @@ function CheckoutForm() {
     () => (firestore && productId ? doc(firestore, 'products', productId) : null),
     [firestore, productId]
   );
-  const { data: product, isLoading } = useDoc<Product>(productRef);
+  const { data: product, isLoading: isProductLoading } = useDoc<Product>(productRef);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -73,7 +71,27 @@ function CheckoutForm() {
     }
   }, [userProfile, form]);
   
-  if (isLoading) {
+  useEffect(() => {
+    // Proactively sign in anonymous users when the page loads
+    const ensureUser = async () => {
+        if (!isUserLoading && !user && auth) {
+            try {
+                await signInAnonymously(auth);
+            } catch (error) {
+                console.error("Anonymous sign-in failed:", error);
+                toast({
+                    variant: 'destructive',
+                    title: 'Authentication Error',
+                    description: 'Could not prepare for checkout. Please refresh and try again.'
+                });
+            }
+        }
+    };
+    ensureUser();
+  }, [isUserLoading, user, auth, toast]);
+  
+
+  if (isProductLoading || isUserLoading) {
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="grid md:grid-cols-2 gap-12">
@@ -118,37 +136,35 @@ function CheckoutForm() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    if (!auth || !firestore) {
+    if (!firestore || !user) {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: 'Services are not ready. Please try again in a moment.',
+        description: 'Services are not ready. Please refresh the page and try again.',
       });
       setIsSubmitting(false);
       return;
     }
-    
-    let currentUser: User;
-    try {
-        currentUser = auth.currentUser ? auth.currentUser : (await signInAnonymously(auth)).user;
-    } catch(error) {
-        console.error("Authentication failed:", error);
-        toast({ variant: "destructive", title: "Login Failed", description: "Could not sign you in to place an order." });
-        setIsSubmitting(false);
-        return;
-    }
 
     try {
-        const userProfileRef = doc(firestore, 'users', currentUser.uid);
-        await setDoc(userProfileRef, {
-            uid: currentUser.uid,
+        const userProfileRef = doc(firestore, 'users', user.uid);
+        setDoc(userProfileRef, {
+            uid: user.uid,
             name: values.name,
             address: values.address,
             phone: values.phone,
-        }, { merge: true });
+        }, { merge: true }).catch(err => {
+            console.error("Error saving user profile:", err);
+            const permissionError = new FirestorePermissionError({
+                path: userProfileRef.path,
+                operation: 'write',
+                requestResourceData: values
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
 
         const orderData = {
-          userId: currentUser.uid,
+          userId: user.uid,
           items: [{
             id: product.id,
             name: product.name,
@@ -167,14 +183,14 @@ function CheckoutForm() {
           }
         };
         
-        const ordersCollection = collection(firestore, 'users', currentUser.uid, 'orders');
+        const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
         const docRef = await addDoc(ordersCollection, orderData);
         
         const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
         const message = `
   New Order Received!
   Order ID: ${docRef.id}
-  Customer ID: ${currentUser.uid}
+  Customer ID: ${user.uid}
   Product ID: ${product.id}
   
   Customer Details:
@@ -201,14 +217,14 @@ function CheckoutForm() {
             description: "Redirecting to WhatsApp to confirm your order.",
         });
         
+        // This will redirect the current tab to WhatsApp
         window.location.href = whatsappUrl;
 
     } catch (error) {
         console.error("Error placing order:", error);
         
-        // This provides more detailed error info for debugging but doesn't throw.
         const permissionError = new FirestorePermissionError({
-            path: `users/${currentUser.uid}/orders`,
+            path: `users/${user.uid}/orders`,
             operation: 'create',
         });
         errorEmitter.emit('permission-error', permissionError);
@@ -219,6 +235,7 @@ function CheckoutForm() {
             description: 'Could not save your order. Please check your details and try again.',
         });
     } finally {
+      // This may not be reached if redirect is successful
       setIsSubmitting(false);
     }
   }
@@ -274,7 +291,7 @@ function CheckoutForm() {
                     )}
                   />
 
-                  <Button type="submit" className="w-full" size="lg" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }} disabled={isSubmitting}>
+                  <Button type="submit" className="w-full" size="lg" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }} disabled={isSubmitting || !user}>
                     {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                     {isSubmitting ? 'Placing Order...' : `Place Order - $${total.toFixed(2)}`}
                   </Button>
