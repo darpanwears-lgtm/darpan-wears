@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -41,6 +42,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     router.push(checkoutUrl);
   }
 
+  const primaryImageUrl = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : '/placeholder.png';
+
   return (
     <ScrollArea className="max-h-[85vh]">
         <DialogHeader>
@@ -51,7 +54,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <div className="w-full md:sticky top-0">
               <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-secondary">
                 <Image
-                    src={product.imageUrl}
+                    src={primaryImageUrl}
                     alt={product.name}
                     fill
                     className="object-contain"

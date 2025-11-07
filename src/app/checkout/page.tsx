@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -89,6 +90,8 @@ function CheckoutForm() {
   }
   
   const total = product.price;
+  const primaryImageUrl = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : '/placeholder.png';
+
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!user || !firestore) {
@@ -110,7 +113,7 @@ function CheckoutForm() {
         name: product.name,
         price: product.price,
         quantity: 1,
-        imageUrl: product.imageUrl,
+        imageUrl: primaryImageUrl,
         size: size || 'N/A'
       }],
       totalAmount: total,
@@ -227,7 +230,7 @@ ${itemsSummary}\\n
             <CardContent className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
-                    <Image src={product.imageUrl} alt={product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={product.imageHint}/>
+                    <Image src={primaryImageUrl} alt={product.name} width={64} height={64} className="rounded-md object-cover" data-ai-hint={product.imageHint}/>
                     <div>
                       <p className="font-medium">{product.name}</p>
                        <p className="text-sm text-muted-foreground">

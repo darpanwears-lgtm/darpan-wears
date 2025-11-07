@@ -1,9 +1,10 @@
+
 export interface Product {
   id: string;
   name: string;
   description: string;
   price: number;
-  imageUrl: string;
+  imageUrls: string[];
   category: string;
   imageHint?: string;
   availableSizes?: string[];
@@ -13,6 +14,8 @@ export interface Product {
 export interface CartItem extends Product {
   quantity: number;
   size: string;
+  // Note: This only uses the primary image.
+  imageUrl: string;
 }
 
 export interface OrderItem {

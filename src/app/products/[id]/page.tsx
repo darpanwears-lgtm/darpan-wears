@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -73,13 +74,15 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     const checkoutUrl = `/checkout?productId=${product.id}&size=${selectedSize || ''}`;
     router.push(checkoutUrl);
   };
+  
+  const primaryImageUrl = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : '/placeholder.png';
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div className="aspect-square w-full overflow-hidden rounded-lg bg-secondary">
           <Image
-            src={product.imageUrl}
+            src={primaryImageUrl}
             alt={product.name}
             width={600}
             height={600}

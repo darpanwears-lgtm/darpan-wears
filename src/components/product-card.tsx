@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -17,6 +18,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
+  const primaryImageUrl = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : '/placeholder.png';
 
   return (
     <Dialog>
@@ -26,7 +28,7 @@ export function ProductCard({ product }: ProductCardProps) {
               <CardHeader className="p-0">
                 <div className="relative aspect-square w-full overflow-hidden">
                   <Image
-                    src={product.imageUrl}
+                    src={primaryImageUrl}
                     alt={product.name}
                     fill
                     className="object-cover transition-transform duration-300 group-hover:scale-105"

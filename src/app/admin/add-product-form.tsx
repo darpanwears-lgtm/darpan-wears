@@ -1,3 +1,4 @@
+
 'use client';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -20,7 +21,7 @@ const productSchema = z.object({
   category: z.string().min(2, { message: 'Category is required.' }),
   availableSizes: z.array(z.object({ value: z.string().min(1, "Size can't be empty") })).optional(),
   stockQuantity: z.coerce.number().min(0, { message: 'Stock can\'t be negative.'}),
-  imageUrl: z.string().url({ message: 'Please enter a valid URL.' }),
+  imageUrls: z.array(z.object({ value: z.string().url({ message: 'Please enter a valid URL.' }) })).min(1, { message: 'At least one image URL is required.' }),
 });
 
 export function AdminProductForm() {
@@ -38,13 +39,18 @@ export function AdminProductForm() {
       category: '',
       availableSizes: [{value: 'S'}, {value: 'M'}, {value: 'L'}],
       stockQuantity: 1,
-      imageUrl: '',
+      imageUrls: [{ value: '' }],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields: sizeFields, append: appendSize, remove: removeSize } = useFieldArray({
     control: form.control,
     name: "availableSizes",
+  });
+
+  const { fields: imageFields, append: appendImage, remove: removeImage } = useFieldArray({
+    control: form.control,
+    name: "imageUrls",
   });
 
   async function onSubmit(values: z.infer<typeof productSchema>) {
@@ -64,7 +70,7 @@ export function AdminProductForm() {
         category: values.category,
         availableSizes: values.availableSizes?.map(s => s.value),
         stockQuantity: values.stockQuantity,
-        imageUrl: values.imageUrl,
+        imageUrls: values.imageUrls.map(i => i.value),
       };
 
       addDoc(productsCollection, productData).catch(async (serverError) => {
@@ -110,50 +116,69 @@ export function AdminProductForm() {
                 <FormField control={form.control} name="stockQuantity" render={({ field }) => ( <FormItem><FormLabel>Stock Quantity</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem> )} />
             </div>
 
-            <div>
-                <FormLabel>Available Sizes</FormLabel>
-                <div className="space-y-2 mt-2">
-                {fields.map((field, index) => (
-                  <div key={field.id} className="flex items-center gap-2">
-                     <FormField
-                        control={form.control}
-                        name={`availableSizes.${index}.value`}
-                        render={({ field }) => (
-                            <FormItem className="flex-grow">
-                                <FormControl>
-                                    <Input {...field} placeholder={`Size ${index + 1}`} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                        />
-                    <Button type="button" variant="destructive" size="sm" onClick={() => remove(index)}>Remove</Button>
+            <div className='grid md:grid-cols-2 gap-6'>
+                <div>
+                    <FormLabel>Available Sizes</FormLabel>
+                    <div className="space-y-2 mt-2">
+                    {sizeFields.map((field, index) => (
+                      <div key={field.id} className="flex items-center gap-2">
+                         <FormField
+                            control={form.control}
+                            name={`availableSizes.${index}.value`}
+                            render={({ field }) => (
+                                <FormItem className="flex-grow">
+                                    <FormControl>
+                                        <Input {...field} placeholder={`Size ${index + 1}`} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                        <Button type="button" variant="destructive" size="sm" onClick={() => removeSize(index)}>Remove</Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => appendSize({ value: "" })}
+                    >
+                      Add Size
+                    </Button>
                   </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => append({ value: "" })}
-                >
-                  Add Size
-                </Button>
-              </div>
-            </div>
+                </div>
 
-            <FormField
-              control={form.control}
-              name="imageUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Image URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://example.com/image.png" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <div>
+                    <FormLabel>Product Image URLs</FormLabel>
+                    <div className="space-y-2 mt-2">
+                    {imageFields.map((field, index) => (
+                      <div key={field.id} className="flex items-center gap-2">
+                         <FormField
+                            control={form.control}
+                            name={`imageUrls.${index}.value`}
+                            render={({ field }) => (
+                                <FormItem className="flex-grow">
+                                    <FormControl>
+                                        <Input {...field} placeholder={`Image URL ${index + 1}`} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+                        <Button type="button" variant="destructive" size="sm" onClick={() => removeImage(index)}>Remove</Button>
+                      </div>
+                    ))}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => appendImage({ value: "" })}
+                    >
+                      Add Image
+                    </Button>
+                  </div>
+                </div>
+            </div>
             
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

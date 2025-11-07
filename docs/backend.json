@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Product": {
@@ -18,10 +19,13 @@
           "type": "string",
           "description": "Detailed description of the product, including materials and features."
         },
-        "imageUrl": {
-          "type": "string",
-          "description": "URL of the product image stored in Firebase Storage.",
-          "format": "uri"
+        "imageUrls": {
+          "type": "array",
+          "description": "URLs of the product images stored in Firebase Storage.",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
         },
         "price": {
           "type": "number",
@@ -47,7 +51,7 @@
         "id",
         "name",
         "description",
-        "imageUrl",
+        "imageUrls",
         "price",
         "category",
         "availableSizes",
