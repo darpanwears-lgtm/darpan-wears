@@ -13,8 +13,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { ProductForm } from './product-form';
-import { FileEdit, Trash2 } from 'lucide-react';
+import { FileEdit, Trash2, Link as LinkIcon } from 'lucide-react';
 import { errorEmitter, FirestorePermissionError } from '@/firebase';
+import Link from 'next/link';
 
 export function ProductList() {
     const firestore = useFirestore();
@@ -88,6 +89,7 @@ export function ProductList() {
                                 <TableHead>Name</TableHead>
                                 <TableHead>Price</TableHead>
                                 <TableHead>Stock</TableHead>
+                                <TableHead>Link</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -102,6 +104,17 @@ export function ProductList() {
                                         <TableCell className="font-medium">{product.name}</TableCell>
                                         <TableCell>${product.price.toFixed(2)}</TableCell>
                                         <TableCell>{product.stockQuantity}</TableCell>
+                                        <TableCell>
+                                            {product.productLink ? (
+                                                <Button asChild variant="ghost" size="icon">
+                                                    <Link href={product.productLink} target="_blank" rel="noopener noreferrer">
+                                                        <LinkIcon className="h-4 w-4" />
+                                                    </Link>
+                                                </Button>
+                                            ) : (
+                                                <span className="text-muted-foreground">-</span>
+                                            )}
+                                        </TableCell>
                                         <TableCell className="text-right">
                                             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                                                 <DialogTrigger asChild>
