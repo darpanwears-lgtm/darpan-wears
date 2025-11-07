@@ -114,6 +114,7 @@ export default function Home() {
                   alt={`Hero image ${index + 1}`}
                   fill
                   className="object-cover"
+                  priority={index === 0}
                 />
               </CarouselItem>
             ))}
@@ -188,7 +189,7 @@ export default function Home() {
           ) : (
             <>
               {filteredAndSortedProducts.length > 0 ? (
-                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 md:gap-6">
+                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 md:gap-6">
                   {filteredAndSortedProducts.map((product: Product) => (
                     <ProductCard key={product.id} product={product} />
                   ))}

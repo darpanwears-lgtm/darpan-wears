@@ -140,7 +140,7 @@ ${values.address}
                                         <FormControl>
                                             <RadioGroupItem value="COD" />
                                         </FormControl>
-                                        <FormLabel className="font-normal">
+                                        <FormLabel className="font-normal text-sm md:text-base">
                                             Cash on Delivery (COD)
                                         </FormLabel>
                                         </FormItem>
@@ -148,7 +148,7 @@ ${values.address}
                                         <FormControl>
                                             <RadioGroupItem value="Online" />
                                         </FormControl>
-                                        <FormLabel className="font-normal">
+                                        <FormLabel className="font-normal text-sm md:text-base">
                                             Online Payment
                                         </FormLabel>
                                         </FormItem>
