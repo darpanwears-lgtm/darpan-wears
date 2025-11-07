@@ -23,6 +23,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 import { ImageLightbox } from './image-lightbox';
+import Link from 'next/link';
 
 interface ProductDetailsProps {
     product: Product;
@@ -139,9 +140,15 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                 )}
 
                 <div className="flex items-center gap-4 mt-auto pt-4">
-                    <DialogClose asChild>
+                    {product.productLink ? (
+                      <Button size="lg" variant="secondary" asChild className="w-full">
+                        <Link href={product.productLink} target="_blank">View Original</Link>
+                      </Button>
+                    ) : (
+                       <DialogClose asChild>
                         <Button size="lg" variant="outline" className="w-full">Back</Button>
-                    </DialogClose>
+                      </DialogClose>
+                    )}
                     <DialogClose asChild>
                         <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }} className="w-full">Buy Now</Button>
                     </DialogClose>

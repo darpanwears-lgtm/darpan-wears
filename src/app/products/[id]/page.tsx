@@ -25,6 +25,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel"
 import { ImageLightbox } from '@/components/image-lightbox';
+import Link from 'next/link';
 
 
 export default function ProductPage({ params }: { params: { id: string } }) {
@@ -169,6 +170,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           )}
 
           <div className="flex items-center gap-4">
+             {product.productLink && (
+                <Button size="lg" variant="secondary" asChild className="w-full">
+                    <Link href={product.productLink} target="_blank" rel="noopener noreferrer">View Original</Link>
+                </Button>
+            )}
             <Button size="lg" onClick={handleBuyNow} style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }} className="w-full">Buy Now</Button>
           </div>
         </div>

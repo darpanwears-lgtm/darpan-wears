@@ -22,6 +22,7 @@ const productSchema = z.object({
   availableSizes: z.array(z.object({ value: z.string().min(1, "Size can't be empty") })).optional(),
   stockQuantity: z.coerce.number().min(0, { message: 'Stock can\'t be negative.'}),
   imageUrls: z.array(z.object({ value: z.string().url({ message: 'Please enter a valid URL.' }) })).min(1, { message: 'At least one image URL is required.' }),
+  productLink: z.string().url({ message: 'Please enter a valid URL.' }).optional().or(z.literal('')),
 });
 
 export function AdminProductForm() {
@@ -40,6 +41,7 @@ export function AdminProductForm() {
       availableSizes: [{value: 'S'}, {value: 'M'}, {value: 'L'}],
       stockQuantity: 1,
       imageUrls: [{ value: '' }],
+      productLink: '',
     },
   });
 
@@ -71,6 +73,7 @@ export function AdminProductForm() {
         availableSizes: values.availableSizes?.map(s => s.value),
         stockQuantity: values.stockQuantity,
         imageUrls: values.imageUrls.map(i => i.value),
+        productLink: values.productLink,
       };
 
       addDoc(productsCollection, productData).catch(async (serverError) => {
@@ -115,6 +118,8 @@ export function AdminProductForm() {
                 <FormField control={form.control} name="category" render={({ field }) => ( <FormItem><FormLabel>Category</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                 <FormField control={form.control} name="stockQuantity" render={({ field }) => ( <FormItem><FormLabel>Stock Quantity</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem> )} />
             </div>
+            
+            <FormField control={form.control} name="productLink" render={({ field }) => ( <FormItem><FormLabel>Product Link (for Resellers)</FormLabel><FormControl><Input {...field} placeholder="https://original-product-url.com" /></FormControl><FormMessage /></FormItem> )} />
 
             <div className='grid md:grid-cols-2 gap-6'>
                 <div>

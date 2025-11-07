@@ -45,6 +45,11 @@
         "stockQuantity": {
           "type": "number",
           "description": "The number of items currently in stock."
+        },
+        "productLink": {
+            "type": "string",
+            "format": "uri",
+            "description": "An external link to the original product page, for reseller reference."
         }
       },
       "required": [
