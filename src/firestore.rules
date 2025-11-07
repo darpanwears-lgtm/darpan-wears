@@ -105,8 +105,8 @@ service cloud.firestore {
        * @description Rules for the messages subcollection.
        */
       match /messages/{messageId} {
-        // User can read their own messages. Admin can read all messages.
-        allow read: if isOwner(userId) || isAdmin();
+        // User can read/list their own messages. Admin can read/list all messages.
+        allow get, list: if isOwner(userId) || isAdmin();
         
         // User can create messages in their own chat. Admin can create messages in any chat.
         allow create: if (isOwner(userId) && request.resource.data.senderId == userId)
