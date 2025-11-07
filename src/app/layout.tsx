@@ -22,9 +22,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [showInstagramPopup, setShowInstagramPopup] = useState(false);
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
-    // This effect runs only on the client
+    // This effect runs only on the client, after the component has mounted.
+    setIsClient(true);
     const hasSeenPopup = localStorage.getItem('hasSeenInstagramPopup');
     if (!hasSeenPopup) {
       setShowInstagramPopup(true);
@@ -48,7 +50,7 @@ export default function RootLayout({
       <body className="font-body antialiased">
         <FirebaseClientProvider>
           <AuthProvider>
-              <InstagramPopup open={showInstagramPopup} onOpenChange={setShowInstagramPopup} onFollow={handlePopupClose} />
+              {isClient && <InstagramPopup open={showInstagramPopup} onOpenChange={setShowInstagramPopup} onFollow={handlePopupClose} />}
               <div className="flex min-h-screen flex-col">
                 <Header />
                 <main className="flex-grow">{children}</main>
