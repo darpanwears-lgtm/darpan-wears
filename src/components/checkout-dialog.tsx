@@ -148,34 +148,40 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
         const docRef = await addDoc(ordersCollection, orderData);
         
         const itemsSummary = `- ${product.name} (Size: ${selectedSize || 'N/A'}) - $${total.toFixed(2)}`;
-        const message = `
-  New Order Received!
-  Order ID: ${docRef.id}
-  Customer ID: ${user.uid}
-  Product ID: ${product.id}
-  
-  Customer Details:
-  Name: ${values.name}
-  Address: ${values.address}
-  Phone: ${values.phone}
-  Payment: ${values.paymentMethod}
-  
-  Order Item:
-  ${itemsSummary}
-  
-  Total Amount: $${total.toFixed(2)}
+        
+        const commonMessageBody = `
+New Order Received!
+Order ID: ${docRef.id}
+Customer ID: ${user.uid}
+Product ID: ${product.id}
+
+Customer Details:
+Name: ${values.name}
+Address: ${values.address}
+Phone: ${values.phone}
+Payment: ${values.paymentMethod}
+
+Order Item:
+${itemsSummary}
+
+Total Amount: $${total.toFixed(2)}
         `.trim().replace(/^\s+/gm, '');
   
         const whatsappNumber = '919332307996';
-        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(commonMessageBody)}`;
+
+        const emailAddress = 'darpanwears@gmail.com';
+        const emailSubject = `New Order: ${docRef.id}`;
+        const emailUrl = `mailto:${emailAddress}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(commonMessageBody)}`;
         
         toast({
             title: "Order Placed!",
-            description: "Redirecting to WhatsApp to confirm your order.",
+            description: "Confirm your order on WhatsApp & Email.",
         });
         
         if (typeof window !== 'undefined') {
-            window.location.href = whatsappUrl;
+            window.open(whatsappUrl, '_blank');
+            window.location.href = emailUrl;
         }
         onOpenChange(false);
 
