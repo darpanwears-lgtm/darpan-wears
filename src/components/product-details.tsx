@@ -83,7 +83,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
                     <CarouselItem key={index}>
                       <Card>
                         <CardContent className="relative flex aspect-square items-center justify-center p-0">
-                           <ImageLightbox imageUrl={url} alt={`${product.name} image ${index + 1}`}>
+                           <ImageLightbox product={product} initialIndex={index}>
                               <Image
                                   src={url}
                                   alt={`${product.name} image ${index + 1}`}
