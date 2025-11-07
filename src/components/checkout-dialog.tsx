@@ -19,6 +19,7 @@ import { signInAnonymously } from 'firebase/auth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { ScrollArea } from './ui/scroll-area';
+import { useRouter } from 'next/navigation';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -38,6 +39,7 @@ interface CheckoutDialogProps {
 
 export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: CheckoutDialogProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const firestore = useFirestore();
@@ -57,8 +59,6 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
   });
 
   useEffect(() => {
-    // When the dialog opens, reset the form. If a user profile exists,
-    // populate the fields but leave paymentMethod undefined so the user must choose.
     if (open) {
         form.reset({
             name: userProfile?.name || '',
@@ -70,7 +70,6 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
   }, [userProfile, form, open]);
   
   useEffect(() => {
-    // Proactively sign in anonymous users when the dialog opens
     const ensureUser = async () => {
         if (open && !isUserLoading && !user && auth) {
             try {
@@ -149,7 +148,7 @@ export function CheckoutDialog({ open, onOpenChange, product, selectedSize }: Ch
         
         const itemsSummary = `- ${product.name} (Size: ${selectedSize || 'N/A'}) - $${total.toFixed(2)}`;
         
-        const commonMessageBody = `
+        const emailMessageBody = `
 New Order Received!
 Order ID: ${docRef.id}
 Customer ID: ${user.uid}
@@ -166,24 +165,26 @@ ${itemsSummary}
 
 Total Amount: $${total.toFixed(2)}
         `.trim().replace(/^\s+/gm, '');
-  
-        const whatsappNumber = '919332307996';
-        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(commonMessageBody)}`;
 
         const emailAddress = 'darpanwears@gmail.com';
         const emailSubject = `New Order: ${docRef.id}`;
-        const emailUrl = `mailto:${emailAddress}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(commonMessageBody)}`;
+        const emailUrl = `mailto:${emailAddress}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailMessageBody)}`;
         
         toast({
             title: "Order Placed!",
-            description: "Confirm your order on WhatsApp & Email.",
+            description: "Please confirm your order via email.",
         });
         
         if (typeof window !== 'undefined') {
-            window.open(whatsappUrl, '_blank');
             window.location.href = emailUrl;
         }
+
         onOpenChange(false);
+        // We navigate to the order confirmation page after a short delay
+        // to give the mail client time to open.
+        setTimeout(() => {
+            router.push(`/order/${docRef.id}`);
+        }, 500);
 
     } catch (error) {
         console.error("Error placing order:", error);
@@ -219,7 +220,7 @@ Total Amount: $${total.toFixed(2)}
                             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                             <FormField control={form.control} name="name" render={({ field }) => ( <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
                             <FormField control={form.control} name="address" render={({ field }) => ( <FormItem><FormLabel>Full Address</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )} />
-                            <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>WhatsApp Number</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem> )} />
+                            <FormField control={form.control} name="phone" render={({ field }) => ( <FormItem><FormLabel>Phone Number</FormLabel><FormControl><Input type="tel" {...field} /></FormControl><FormMessage /></FormItem> )} />
                             
                             <FormField
                                 control={form.control}
@@ -295,5 +296,3 @@ Total Amount: $${total.toFixed(2)}
     </Dialog>
   );
 }
-
-    

@@ -1,18 +1,24 @@
 
 'use client';
-import { Suspense, useEffect } from 'react';
-import { CheckCircle, MessageSquareText } from 'lucide-react';
+import { Suspense } from 'react';
+import { CheckCircle, Mail } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { WhatsAppIcon } from '@/components/icons/whatsapp';
-
+import { useRouter } from 'next/navigation';
 
 function OrderConfirmation() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const orderId = typeof window !== 'undefined' ? window.location.pathname.split('/').pop() : '';
+
+  const handleSendEmail = () => {
+    // This function can be expanded later to resend the order details
+    const emailAddress = 'darpanwears@gmail.com';
+    const emailSubject = `Order Confirmation: ${orderId}`;
+    const emailBody = `My order ID is ${orderId}.`;
+    const emailUrl = `mailto:${emailAddress}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+    window.location.href = emailUrl;
+  };
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -24,7 +30,7 @@ function OrderConfirmation() {
           <CardTitle className="text-2xl font-bold font-headline">Thank you for your order!</CardTitle>
           <p className="text-muted-foreground">Your order has been placed successfully.</p>
            <p className="text-sm text-muted-foreground mt-2">
-                You should have been redirected to WhatsApp to send your order details.
+                You should have been prompted to send your order details via email.
            </p>
         </CardHeader>
         <CardContent className="text-center space-y-6">
@@ -33,13 +39,11 @@ function OrderConfirmation() {
             <p className="text-lg font-mono bg-muted rounded-md px-2 py-1 inline-block">{orderId}</p>
           </div>
           <p className="text-muted-foreground text-sm">
-            If you were not redirected, please contact us on WhatsApp with your order ID.
+            If you were not redirected, please contact us via email with your order ID.
           </p>
           
-          <Button asChild>
-            <Link href={`https://wa.me/919332307996`} target="_blank" rel="noopener noreferrer">
-                <WhatsAppIcon className="mr-2 h-4 w-4" /> Open WhatsApp
-            </Link>
+          <Button onClick={handleSendEmail}>
+              <Mail className="mr-2 h-4 w-4" /> Open Email
           </Button>
 
           <div className="flex gap-4 justify-center pt-4 border-t">
@@ -63,5 +67,3 @@ export default function OrderPage() {
         </Suspense>
     )
 }
-
-    
