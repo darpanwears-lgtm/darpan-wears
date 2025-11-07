@@ -24,27 +24,28 @@ export function OrderList() {
     const handleStatusChange = async (order: Order, newStatus: Order['status']) => {
         if (!firestore) return;
         const orderRef = doc(firestore, 'users', order.userId, 'orders', order.id);
-        try {
-            updateDoc(orderRef, { status: newStatus }).catch((e: FirestoreError) => {
-                 const permissionError = new FirestorePermissionError({
+        
+        updateDoc(orderRef, { status: newStatus })
+            .then(() => {
+                toast({
+                    title: 'Order Status Updated',
+                    description: `Order #${order.id.slice(0,7)} is now ${newStatus}.`,
+                });
+            })
+            .catch((error: FirestoreError) => {
+                console.error('Error updating order status:', error);
+                const permissionError = new FirestorePermissionError({
                     path: orderRef.path,
                     operation: 'update',
                     requestResourceData: { status: newStatus },
                 });
                 errorEmitter.emit('permission-error', permissionError);
+                toast({
+                    variant: 'destructive',
+                    title: 'Error',
+                    description: 'Could not update order status. Check permissions.',
+                });
             });
-            toast({
-                title: 'Order Status Updated',
-                description: `Order #${order.id.slice(0,7)} is now ${newStatus}.`,
-            });
-        } catch (error) {
-            console.error('Error updating order status:', error);
-            toast({
-                variant: 'destructive',
-                title: 'Error',
-                description: 'Could not update order status.',
-            });
-        }
     };
     
     if (isLoading) {
