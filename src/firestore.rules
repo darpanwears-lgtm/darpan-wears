@@ -62,7 +62,7 @@ service cloud.firestore {
      */
     match /roles_admin/{userId} {
       allow read, write: if isAdmin();
-      allow list: if false;
+      allow list: if isAdmin();
     }
     
     /**
@@ -100,3 +100,5 @@ service cloud.firestore {
     }
   }
 }
+
+    
