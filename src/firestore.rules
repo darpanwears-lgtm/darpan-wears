@@ -98,8 +98,8 @@ service cloud.firestore {
      * @description Rules for the chat messages collection.
      */
     match /chats/{userId}/messages/{messageId} {
-        // Users can read and write to their own chat channel.
-        allow read, write: if isOwner(userId);
+        // Users can read and write to their own chat channel. Admins can read/write to any.
+        allow read, write: if isOwner(userId) || isAdmin();
     }
 
 
