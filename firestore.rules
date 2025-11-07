@@ -4,7 +4,7 @@
  * Core Philosophy:
  * This ruleset implements a role-based access control system where all users can read product information,
  * but only users with a designated admin role can create, update, or delete products.
- * Customer can manage their own profile data and order history.
+ * Customer can manage their own profile data and order history. Admins can manage all orders.
  *
  * Data Structure:
  * - /products/{productId}: Stores publicly readable product information.
@@ -16,6 +16,7 @@
  * - Public read access to the /products collection to enable product browsing.
  * - Administrative privileges are determined by the presence of a document in the `/roles_admin/{userId}` collection.
  * - Customer can only access their own data in `/users/{userId}` and its subcollections.
+ * - Admins have read and update access to all orders across all users.
  *
  */
 rules_version = '2';
@@ -75,16 +76,22 @@ service cloud.firestore {
        * @description Rules for the orders subcollection.
        */
       match /orders/{orderId} {
-        // Allow user to create, read, and list their own orders.
-        allow create, get, list: if isOwner(userId);
+        // Allow user to create and read their own orders.
+        allow create, get: if isOwner(userId);
+        
+        // Admins can read any order and update any order's status.
+        // A collection group query for admins needs this rule.
+        allow list, get: if isSignedIn() && isAdmin();
+        
+        // Users can list their own orders.
+        allow list: if isOwner(userId);
 
-        // Allow user to update their own order only for specific fields (status, rating).
-        // A user can cancel an order only if it's currently 'Processing'.
-        allow update: if isOwner(userId)
-                      && (
-                        (request.resource.data.status == 'Cancelled' && resource.data.status == 'Processing')
-                        || request.resource.data.keys().hasAll(['rating'])
-                      );
+        // User can update their own order to cancel or rate it.
+        // Admin can update any order (e.g., to change status).
+        allow update: if (isOwner(userId) && (
+                          (request.resource.data.status == 'Cancelled' && resource.data.status == 'Processing')
+                          || request.resource.data.keys().hasAll(['rating'])
+                        )) || (isSignedIn() && isAdmin());
       }
     }
   }
