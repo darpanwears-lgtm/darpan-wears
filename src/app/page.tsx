@@ -19,24 +19,6 @@ import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carouse
 import Autoplay from "embla-carousel-autoplay";
 import { HowToOrderDialog } from '@/components/how-to-order-dialog';
 
-const heroImages = [
-    {
-        src: "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2071&auto=format&fit=crop",
-        alt: "Fashion models posing",
-        hint: "fashion models"
-    },
-    {
-        src: "https://images.unsplash.com/photo-1490114538077-0a7f8cb49891?q=80&w=2070&auto=format&fit=crop",
-        alt: "Man in stylish clothing",
-        hint: "mens fashion"
-    },
-    {
-        src: "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?q=80&w=1935&auto=format&fit=crop",
-        alt: "Retail clothing rack",
-        hint: "clothing store"
-    }
-]
-
 export default function Home() {
   const firestore = useFirestore();
   const productsCollection = useMemoFirebase(
@@ -107,28 +89,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col flex-grow">
-      <section className="relative h-[50vh] sm:h-[60vh] w-full flex items-center justify-center text-center text-white overflow-hidden">
-        <Carousel 
-            className="absolute inset-0"
-            plugins={[ Autoplay({ delay: 5000, stopOnInteraction: false }) ]}
-            opts={{ loop: true }}
-        >
-            <CarouselContent>
-                {heroImages.map((img, index) => (
-                    <CarouselItem key={index}>
-                        <Image
-                            src={img.src}
-                            alt={img.alt}
-                            fill
-                            className="object-cover"
-                            data-ai-hint={img.hint}
-                            priority={index === 0}
-                        />
-                    </CarouselItem>
-                ))}
-            </CarouselContent>
-        </Carousel>
-        <div className="absolute inset-0 bg-black/60" />
+      <section className="relative h-[50vh] sm:h-[60vh] w-full flex items-center justify-center text-center text-white">
         <div className="relative z-10 p-4 flex flex-col items-center">
             <Image src="https://i.postimg.cc/3wJPYWH2/20251106-223219.png" alt="Darpan Wears Logo" width={80} height={80} className="rounded-full mb-4" />
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold font-headline mb-4 leading-tight">
