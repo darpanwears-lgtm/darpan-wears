@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ScrollArea } from './ui/scroll-area';
 
 
 function ProfileTab() {
@@ -248,46 +249,50 @@ export function AccountDialog({ open, onOpenChange }: AccountDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>My Account</DialogTitle>
-          <DialogDescription>Manage your profile, orders, and settings.</DialogDescription>
-        </DialogHeader>
-        
-        <Tabs defaultValue="profile" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="profile">Profile</TabsTrigger>
-                <TabsTrigger value="orders">My Orders</TabsTrigger>
-            </TabsList>
-            <TabsContent value="profile">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Profile Details</CardTitle>
-                        <CardDescription>Update your personal information.</CardDescription>
-                    </CardHeader>
-                    <ProfileTab />
-                </Card>
-            </TabsContent>
-            <TabsContent value="orders">
-                <Card>
-                     <CardHeader>
-                        <CardTitle>Order History</CardTitle>
-                        <CardDescription>View and manage your past orders.</CardDescription>
-                    </CardHeader>
-                    <OrdersTab />
-                </Card>
-            </TabsContent>
-        </Tabs>
+        <DialogContent className="max-w-2xl p-0">
+            <ScrollArea className="max-h-[85vh]">
+                <div className="p-6">
+                    <DialogHeader>
+                        <DialogTitle>My Account</DialogTitle>
+                        <DialogDescription>Manage your profile, orders, and settings.</DialogDescription>
+                    </DialogHeader>
 
-        <DialogFooter className="sm:justify-between pt-4">
-             <Button variant="ghost" onClick={handleLogout}>Logout</Button>
-            <DialogClose asChild>
-                <Button type="button">
-                    Continue Shopping
-                </Button>
-            </DialogClose>
-        </DialogFooter>
-      </DialogContent>
+                    <Tabs defaultValue="profile" className="w-full mt-4">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="profile">Profile</TabsTrigger>
+                            <TabsTrigger value="orders">My Orders</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="profile">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Profile Details</CardTitle>
+                                    <CardDescription>Update your personal information.</CardDescription>
+                                </CardHeader>
+                                <ProfileTab />
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="orders">
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Order History</CardTitle>
+                                    <CardDescription>View and manage your past orders.</CardDescription>
+                                </CardHeader>
+                                <OrdersTab />
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
+
+                    <DialogFooter className="sm:justify-between pt-6">
+                        <Button variant="ghost" onClick={handleLogout}>Logout</Button>
+                        <DialogClose asChild>
+                            <Button type="button">
+                                Continue Shopping
+                            </Button>
+                        </DialogClose>
+                    </DialogFooter>
+                </div>
+            </ScrollArea>
+        </DialogContent>
     </Dialog>
   );
 }
