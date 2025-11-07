@@ -25,12 +25,12 @@ interface InstagramPopupProps {
 export function InstagramPopup({ open, onOpenChange, onFollow }: InstagramPopupProps) {
   const [username, setUsername] = useState('');
 
-  const handleFollowClick = () => {
-    // Here you could save the username to your database if needed
-    console.log('Instagram username:', username);
-    onFollow();
-    // Redirect to Instagram page
-    window.open('https://www.instagram.com/darpan_wears?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==', '_blank');
+  const handleFeatureClick = () => {
+    if (username) {
+        localStorage.setItem('featuredInstagramUser', username);
+    }
+    onFollow(); // This will set the cookie and close the popup
+    window.location.reload(); // Reload to show the footer
   };
 
   const handleSkip = () => {
@@ -44,10 +44,10 @@ export function InstagramPopup({ open, onOpenChange, onFollow }: InstagramPopupP
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Instagram className="text-pink-500" />
-            Follow us on Instagram!
+            Get Featured!
           </DialogTitle>
           <DialogDescription>
-            Enter your Instagram username and follow us for the latest updates and offers.
+            Enter your Instagram username to be featured on our site footer.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -62,8 +62,8 @@ export function InstagramPopup({ open, onOpenChange, onFollow }: InstagramPopupP
           </div>
         </div>
         <DialogFooter className="sm:justify-between flex-col sm:flex-row-reverse gap-2">
-           <Button type="button" onClick={handleFollowClick} style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }}>
-            Follow & Continue
+           <Button type="button" onClick={handleFeatureClick} style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }}>
+            Feature Me
           </Button>
           <Button type="button" variant="secondary" onClick={handleSkip}>
             Skip for now

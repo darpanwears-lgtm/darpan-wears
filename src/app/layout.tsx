@@ -4,6 +4,7 @@ import { AuthProvider } from '@/lib/auth-context';
 import { Header } from '@/components/header';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { Footer } from '@/components/footer';
 
 export const metadata: Metadata = {
   title: 'Darpan Wears Mobile Shop',
@@ -28,6 +29,7 @@ export default function RootLayout({
               <div className="flex min-h-screen flex-col">
                 <Header />
                 <main className="flex-grow">{children}</main>
+                <Footer />
               </div>
               <Toaster />
           </AuthProvider>
