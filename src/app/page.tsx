@@ -3,7 +3,6 @@
 
 import { useMemo, useState } from 'react';
 import { ProductCard } from '@/components/product-card';
-import { Recommendations } from '@/components/recommendations';
 import { useCollection } from '@/firebase';
 import { collection } from 'firebase/firestore';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
@@ -207,9 +206,9 @@ export default function Home() {
             </>
           )}
         </section>
-
-        <Recommendations />
       </div>
     </div>
   );
 }
+
+    

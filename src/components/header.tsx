@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { User, Instagram, KeyRound, ShoppingBag, MessageSquare } from 'lucide-react';
+import { User, Instagram, KeyRound, ShoppingBag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FacebookIcon } from './icons/facebook';
 import { WhatsAppIcon } from './icons/whatsapp';
@@ -51,14 +51,6 @@ export function Header() {
       setIsAccountDialogOpen(true);
     } else {
       setIsLoginDialogOpen(true);
-    }
-  };
-  
-  const handleChatClick = () => {
-    if (user) {
-        router.push('/chat');
-    } else {
-        setIsLoginDialogOpen(true);
     }
   };
 
@@ -112,10 +104,6 @@ export function Header() {
                   <span className="sr-only">WhatsApp</span>
                 </Button>
               </Link>
-              <Button variant="ghost" size="sm" onClick={handleChatClick}>
-                <MessageSquare className="h-5 w-5" />
-                <span className="sr-only">Chat</span>
-              </Button>
               <Button variant="ghost" size="sm" onClick={handleAccountClick}>
                 {userProfile && userProfile.name ? (
                    <Avatar className="h-8 w-8">
@@ -160,3 +148,5 @@ export function Header() {
     </>
   );
 }
+
+    

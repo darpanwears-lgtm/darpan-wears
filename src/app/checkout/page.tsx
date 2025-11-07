@@ -205,10 +205,6 @@ function CheckoutForm() {
   Total Amount: $${total.toFixed(2)}
         `.trim().replace(/^\s+/gm, '');
   
-        const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
-        const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
-        localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
-        
         const whatsappNumber = '919332307996';
         const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
         
@@ -217,8 +213,9 @@ function CheckoutForm() {
             description: "Redirecting to WhatsApp to confirm your order.",
         });
         
-        // This will redirect the current tab to WhatsApp
-        window.location.href = whatsappUrl;
+        if (typeof window !== 'undefined') {
+            window.location.href = whatsappUrl;
+        }
 
     } catch (error) {
         console.error("Error placing order:", error);
