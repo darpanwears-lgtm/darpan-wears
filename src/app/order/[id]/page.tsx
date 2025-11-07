@@ -1,6 +1,7 @@
+
 'use client';
 import { Suspense, useEffect } from 'react';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Instagram } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -10,17 +11,17 @@ import { useSearchParams, useRouter } from 'next/navigation';
 function OrderConfirmation() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const whatsappUrl = searchParams.get('whatsappUrl');
+  const instagramUrl = searchParams.get('instagramUrl');
 
   useEffect(() => {
-    if (whatsappUrl) {
-      // Redirect to WhatsApp after a short delay to allow the user to see the confirmation
+    if (instagramUrl) {
+      // Redirect to Instagram after a short delay
       const timer = setTimeout(() => {
-        window.location.href = whatsappUrl;
+        window.open(instagramUrl, '_blank');
       }, 3000); // 3-second delay
       return () => clearTimeout(timer);
     }
-  }, [whatsappUrl, router]);
+  }, [instagramUrl]);
 
   const orderId = window.location.pathname.split('/').pop();
 
@@ -32,21 +33,30 @@ function OrderConfirmation() {
             <CheckCircle className="h-10 w-10 text-green-600" />
           </div>
           <CardTitle className="text-2xl font-bold font-headline">Thank you for your order!</CardTitle>
-          <p className="text-muted-foreground">Your order has been placed successfully.</p>
-           {whatsappUrl && <p className="text-sm text-muted-foreground mt-2">You will be redirected to WhatsApp to complete the order...</p>}
+          <p className="text-muted-foreground">Your order details have been copied to your clipboard.</p>
+           {instagramUrl && (
+             <p className="text-sm text-muted-foreground mt-2">
+                You will be redirected to Instagram. Please paste the copied message in a DM to complete your order.
+             </p>
+           )}
         </CardHeader>
         <CardContent className="text-center space-y-6">
           <div>
             <p className="font-medium">Order ID</p>
             <p className="text-lg font-mono bg-muted rounded-md px-2 py-1 inline-block">{orderId}</p>
           </div>
-          <div>
-            <p className="font-medium">Order Status</p>
-            <p className="text-lg text-blue-600 font-semibold">Processing</p>
-          </div>
-          <p className="text-muted-foreground text-sm">You will receive an update via WhatsApp shortly. You can track your order in your account.</p>
-          <div className="flex gap-4 justify-center">
-            <Button asChild>
+          <p className="text-muted-foreground text-sm">
+            If you are not redirected, click the button below to open Instagram.
+          </p>
+           {instagramUrl && (
+             <Button asChild>
+                <Link href={instagramUrl} target="_blank" rel="noopener noreferrer">
+                    <Instagram className="mr-2 h-4 w-4" /> Open Instagram
+                </Link>
+             </Button>
+           )}
+          <div className="flex gap-4 justify-center pt-4 border-t">
+            <Button variant="outline" asChild>
               <Link href="/">Continue Shopping</Link>
             </Button>
             <Button variant="outline" asChild>

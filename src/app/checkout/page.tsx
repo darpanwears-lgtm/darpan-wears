@@ -11,16 +11,15 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Image from 'next/image';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Suspense } from 'react';
+import { Suspense, useState } from 'react';
 import { useDoc, useUser } from '@/firebase';
-import { doc, addDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { doc, addDoc, collection } from 'firebase/firestore';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
-import type { Product, Order } from '@/lib/types';
+import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter, FirestorePermissionError } from '@/firebase';
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -133,33 +132,42 @@ function CheckoutForm() {
         const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
         const docRef = await addDoc(ordersCollection, orderData);
 
-        // Send WhatsApp message
+        // Prepare Instagram message
         const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
         const message = `
-*New Order Received!* (ID: ${docRef.id.slice(0,7)})\\n
-\\n
-*Customer Details:*\\n
-Name: ${values.name}\\n
-Address: ${values.address}\\n
-Phone: ${values.phone}\\n
-Payment: ${values.paymentMethod}\\n
-\\n
-*Order Item:*\\n
-${itemsSummary}\\n
-\\n
-*Total Amount: $${total.toFixed(2)}*
-        `;
-        const whatsappNumber = '7497810643';
-        const encodedMessage = encodeURIComponent(message);
-        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+New Order Received!
+Order ID: ${docRef.id}
+Customer ID: ${user.uid}
+Product ID: ${product.id}
+
+Customer Details:
+Name: ${values.name}
+Address: ${values.address}
+Phone: ${values.phone}
+Payment: ${values.paymentMethod}
+
+Order Item:
+${itemsSummary}
+
+Total Amount: $${total.toFixed(2)}
+        `.trim();
+
+        // Copy message to clipboard
+        await navigator.clipboard.writeText(message);
+        
+        toast({
+          title: "Order Details Copied!",
+          description: "Redirecting to Instagram. Please paste the details in a DM.",
+        });
 
         // Update purchase history in localStorage
         const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
         const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
         localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
         
-        // Redirect to success page, which then redirects to WhatsApp
-        router.push(`/order/${docRef.id}?whatsappUrl=${encodeURIComponent(whatsappUrl)}`);
+        // Redirect to success page, which then redirects to Instagram
+        const instagramUrl = 'https://www.instagram.com/darpan_wear/?__pwa=1';
+        router.push(`/order/${docRef.id}?instagramUrl=${encodeURIComponent(instagramUrl)}`);
 
     } catch (error) {
         console.error("Error placing order:", error);
