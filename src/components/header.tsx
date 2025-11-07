@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -16,6 +17,7 @@ import { AccountDialog } from './account-dialog';
 import { useState } from 'react';
 import { LoginDialog } from './login-dialog';
 import { generateColorFromString } from '@/lib/utils';
+import { AdminLoginDialog } from './admin-login-dialog';
 
 
 export function Header() {
@@ -23,6 +25,7 @@ export function Header() {
   const firestore = useFirestore();
   const [isAccountDialogOpen, setIsAccountDialogOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
+  const [isAdminLoginDialogOpen, setIsAdminLoginDialogOpen] = useState(false);
 
   const userProfileRef = useMemoFirebase(
     () => (user && firestore ? doc(firestore, 'users', user.uid) : null),
@@ -99,18 +102,17 @@ export function Header() {
                 )}
                 <span className="sr-only">Account</span>
               </Button>
-               <Link href={'/admin/login'}>
-                <Button variant="ghost" size="sm">
-                  <KeyRound className="h-5 w-5" />
-                  <span className="sr-only">Admin</span>
-                </Button>
-              </Link>
+              <Button variant="ghost" size="sm" onClick={() => setIsAdminLoginDialogOpen(true)}>
+                <KeyRound className="h-5 w-5" />
+                <span className="sr-only">Admin</span>
+              </Button>
             </div>
           </div>
         </div>
       </header>
       {user && <AccountDialog open={isAccountDialogOpen} onOpenChange={setIsAccountDialogOpen} />}
       {!user && <LoginDialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen} />}
+      <AdminLoginDialog open={isAdminLoginDialogOpen} onOpenChange={setIsAdminLoginDialogOpen} />
     </>
   );
 }
