@@ -27,7 +27,7 @@ const productSchema = z.object({
 });
 
 interface ProductFormProps {
-    product?: Product;
+    product?: Product | null; // Allow product to be null
     onSuccess?: () => void;
 }
 
@@ -65,6 +65,17 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         imageUrls: product.imageUrls?.map(url => ({ value: url })) || [{ value: '' }],
         productLink: product.productLink || '',
       });
+    } else {
+        form.reset({
+            name: '',
+            description: '',
+            price: 0,
+            category: '',
+            availableSizes: [{value: 'S'}, {value: 'M'}, {value: 'L'}],
+            stockQuantity: 1,
+            imageUrls: [{ value: '' }],
+            productLink: '',
+        })
     }
   }, [product, isEditMode, form]);
 
@@ -98,7 +109,7 @@ export function ProductForm({ product, onSuccess }: ProductFormProps) {
         productLink: values.productLink,
       };
 
-      if (isEditMode && product.id) {
+      if (isEditMode && product?.id) {
           const productRef = doc(firestore, 'products', product.id);
           updateDoc(productRef, productData).catch(async (serverError) => {
               const permissionError = new FirestorePermissionError({
