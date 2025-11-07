@@ -1,11 +1,11 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { ProductForm } from './product-form';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
-import { useUser } from '@/firebase';
+import { useUser, useFirestore } from '@/firebase';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProductList } from './product-list';
 import { OrderList } from './order-list';
@@ -14,8 +14,10 @@ export default function AdminPage() {
   const router = useRouter();
   const { isAdmin, isAuthLoading, logout } = useAuth();
   const { user, isUserLoading: isFirebaseUserLoading } = useUser();
+  const firestore = useFirestore(); // Get firestore instance
 
   useEffect(() => {
+    // Wait until all loading is complete before checking auth status
     if (isAuthLoading || isFirebaseUserLoading) return;
     
     // If auth is not loading and user is not an admin, redirect.
@@ -24,7 +26,8 @@ export default function AdminPage() {
     }
   }, [isAdmin, isAuthLoading, isFirebaseUserLoading, router]);
 
-  if (isAuthLoading || isFirebaseUserLoading || !isAdmin) {
+  // Render loading state if any of the dependencies are not ready
+  if (isAuthLoading || isFirebaseUserLoading || !isAdmin || !firestore) {
     return (
         <div className="container mx-auto flex items-center justify-center min-h-[calc(100vh-8rem)]">
             <p>Loading...</p>
