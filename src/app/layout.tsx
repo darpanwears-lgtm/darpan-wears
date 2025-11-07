@@ -7,7 +7,6 @@ import { AuthProvider } from '@/lib/auth-context';
 import { Header } from '@/components/header';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { Footer } from '@/components/footer';
 import { InstagramPopup } from '@/components/instagram-popup';
 import { useEffect, useState } from 'react';
 import { UserProvider } from '@/lib/user-context';
@@ -56,7 +55,6 @@ export default function RootLayout({
               <div className="flex min-h-screen flex-col">
                 <Header />
                 <main className="flex-grow">{children}</main>
-                <Footer />
               </div>
               <Toaster />
             </UserProvider>
