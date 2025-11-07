@@ -19,6 +19,8 @@ import type { Product, Order } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter, FirestorePermissionError } from '@/firebase';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -35,6 +37,7 @@ function CheckoutForm() {
   const productId = searchParams.get('productId');
   const size = searchParams.get('size');
   const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const firestore = useFirestore();
   const { user } = useUser();
@@ -94,16 +97,16 @@ function CheckoutForm() {
 
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
     if (!user || !firestore) {
       toast({
         variant: 'destructive',
         title: 'Error',
         description: 'You must be logged in to place an order.',
       });
+      setIsSubmitting(false);
       return;
     }
-
-    const orderId = Math.random().toString(36).substr(2, 9);
     
     // Save order to Firestore
     const orderData = {
@@ -126,20 +129,14 @@ function CheckoutForm() {
       }
     };
     
-    const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
-    addDoc(ordersCollection, orderData).catch(async (serverError) => {
-      const permissionError = new FirestorePermissionError({
-          path: ordersCollection.path,
-          operation: 'create',
-          requestResourceData: orderData,
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    });
+    try {
+        const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
+        const docRef = await addDoc(ordersCollection, orderData);
 
-    // Send WhatsApp message
-    const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
-    const message = `
-*New Order Received!* (ID: ${orderId})\\n
+        // Send WhatsApp message
+        const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
+        const message = `
+*New Order Received!* (ID: ${docRef.id.slice(0,7)})\\n
 \\n
 *Customer Details:*\\n
 Name: ${values.name}\\n
@@ -151,18 +148,35 @@ Payment: ${values.paymentMethod}\\n
 ${itemsSummary}\\n
 \\n
 *Total Amount: $${total.toFixed(2)}*
-    `;
-    const whatsappNumber = '7497810643';
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+        `;
+        const whatsappNumber = '7497810643';
+        const encodedMessage = encodeURIComponent(message);
+        const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
 
-    // Update purchase history in localStorage
-    const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
-    const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
-    localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
-    
-    // Redirect to success page, which then redirects to WhatsApp
-    router.push(`/order/${orderId}?whatsappUrl=${encodeURIComponent(whatsappUrl)}`);
+        // Update purchase history in localStorage
+        const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
+        const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
+        localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
+        
+        // Redirect to success page, which then redirects to WhatsApp
+        router.push(`/order/${docRef.id}?whatsappUrl=${encodeURIComponent(whatsappUrl)}`);
+
+    } catch (error) {
+        console.error("Error placing order:", error);
+        const permissionError = new FirestorePermissionError({
+            path: `users/${user.uid}/orders`,
+            operation: 'create',
+            requestResourceData: orderData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+        toast({
+            variant: 'destructive',
+            title: 'Order Failed',
+            description: 'Could not place your order. Please check your permissions and try again.',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
   }
 
   return (
@@ -216,8 +230,9 @@ ${itemsSummary}\\n
                     )}
                   />
 
-                  <Button type="submit" className="w-full" size="lg" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }}>
-                    Place Order - ${total.toFixed(2)}
+                  <Button type="submit" className="w-full" size="lg" style={{ backgroundColor: 'orange', color: 'black', border: '2px solid black' }} disabled={isSubmitting}>
+                    {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    {isSubmitting ? 'Placing Order...' : `Place Order - $${total.toFixed(2)}`}
                   </Button>
                 </form>
               </Form>

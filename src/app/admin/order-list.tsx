@@ -1,3 +1,4 @@
+
 'use client';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collectionGroup, query, orderBy, doc, updateDoc, FirestoreError } from 'firebase/firestore';
@@ -76,7 +77,7 @@ export function OrderList() {
                                 <AccordionTrigger>
                                      <div className="flex justify-between items-center w-full pr-4">
                                         <div className="text-left">
-                                            <p className="font-medium">Order #{order.id.slice(0, 7)}</p>
+                                            <p className="font-medium">Order #{order.id ? order.id.slice(0, 7) : 'N/A'}</p>
                                             <p className="text-sm text-muted-foreground">{order.shippingAddress.name} - {format(new Date(order.orderDate), 'PPP')}</p>
                                         </div>
                                         <p className="text-lg font-bold">${order.totalAmount.toFixed(2)}</p>
