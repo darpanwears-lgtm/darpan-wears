@@ -92,47 +92,50 @@ export function ProductList() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {products.map((product) => (
-                                <TableRow key={product.id}>
-                                    <TableCell>
-                                        <Image src={product.imageUrls[0]} alt={product.name} width={48} height={48} className="rounded-md object-cover" />
-                                    </TableCell>
-                                    <TableCell className="font-medium">{product.name}</TableCell>
-                                    <TableCell>${product.price.toFixed(2)}</TableCell>
-                                    <TableCell>{product.stockQuantity}</TableCell>
-                                    <TableCell className="text-right">
-                                        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                                            <DialogTrigger asChild>
-                                                <Button variant="ghost" size="icon">
-                                                    <FileEdit className="h-4 w-4" />
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-3xl">
-                                               <ProductForm product={product} onSuccess={() => setIsEditDialogOpen(false)} />
-                                            </DialogContent>
-                                        </Dialog>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </AlertDialogTrigger>
-                                            <AlertDialogContent>
-                                                <AlertDialogHeader>
-                                                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                                    <AlertDialogDescription>
-                                                        This action cannot be undone. This will permanently delete the product from your store.
-                                                    </AlertDialogDescription>
-                                                </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDelete(product.id)}>Delete</AlertDialogAction>
-                                                </AlertDialogFooter>
-                                            </AlertDialogContent>
-                                        </AlertDialog>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {products.map((product) => {
+                                const imageUrl = product.imageUrls && product.imageUrls.length > 0 ? product.imageUrls[0] : `https://picsum.photos/seed/${product.id}/48/48`;
+                                return (
+                                    <TableRow key={product.id}>
+                                        <TableCell>
+                                            <Image src={imageUrl} alt={product.name} width={48} height={48} className="rounded-md object-cover" />
+                                        </TableCell>
+                                        <TableCell className="font-medium">{product.name}</TableCell>
+                                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                                        <TableCell>{product.stockQuantity}</TableCell>
+                                        <TableCell className="text-right">
+                                            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <FileEdit className="h-4 w-4" />
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="max-w-3xl">
+                                                <ProductForm product={product} onSuccess={() => setIsEditDialogOpen(false)} />
+                                                </DialogContent>
+                                            </Dialog>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This action cannot be undone. This will permanently delete the product from your store.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDelete(product.id)}>Delete</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </TableCell>
+                                    </TableRow>
+                                )}
+                            )}
                         </TableBody>
                     </Table>
                  ) : (
