@@ -55,3 +55,10 @@ export interface UserProfile {
   address?: string;
   phone?: string;
 }
+
+export interface ChatMessage {
+    id: string;
+    senderId: 'user' | 'ai';
+    text: string;
+    timestamp: number;
+}

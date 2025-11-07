@@ -156,26 +156,17 @@
       },
       "required": ["userId", "items", "totalAmount", "status", "orderDate", "shippingAddress"]
     },
-    "Chat": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Chat",
-      "type": "object",
-      "description": "Represents a chat session between a user and an admin.",
-      "properties": {
-        "userId": { "type": "string" },
-        "userName": { "type": "string" },
-        "lastMessage": { "type": "string" },
-        "lastMessageTimestamp": { "type": "number" }
-      },
-      "required": ["userId", "userName", "lastMessage", "lastMessageTimestamp"]
-    },
     "ChatMessage": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Chat Message",
       "type": "object",
       "description": "Represents a single message within a chat.",
       "properties": {
-        "senderId": { "type": "string", "description": "UID of the sender, or 'admin'." },
+        "senderId": { 
+            "type": "string", 
+            "description": "UID of the sender, or 'ai'.",
+            "enum": ["user", "ai"]
+        },
         "text": { "type": "string" },
         "timestamp": { "type": "number" }
       },
@@ -234,23 +225,13 @@
         }
       },
       {
-        "path": "/chats/{userId}",
-        "definition": {
-          "entityName": "Chat",
-          "schema": {
-            "$ref": "#/backend/entities/Chat"
-          },
-          "description": "Top-level document for a chat session. The ID is the user's UID."
-        }
-      },
-      {
         "path": "/chats/{userId}/messages/{messageId}",
         "definition": {
           "entityName": "ChatMessage",
           "schema": {
             "$ref": "#/backend/entities/ChatMessage"
           },
-          "description": "Subcollection containing all messages for a given chat."
+          "description": "Subcollection containing all messages for a given chat between a user and the AI."
         }
       }
     ]
