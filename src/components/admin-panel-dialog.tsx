@@ -12,7 +12,6 @@ import { Button } from "./ui/button";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { ScrollArea } from "./ui/scroll-area";
-import { OrderList } from "./admin/order-list";
 import { ProductList } from "./admin/product-list";
 import { ProductForm } from "./admin/product-form";
 
@@ -36,7 +35,7 @@ export function AdminPanelDialog({ open, onOpenChange }: AdminPanelDialogProps) 
             <div className="flex justify-between items-center">
                 <div>
                     <DialogTitle className="text-2xl font-bold">Admin Panel</DialogTitle>
-                    <DialogDescription>Manage your store's orders and products.</DialogDescription>
+                    <DialogDescription>Manage your store's products.</DialogDescription>
                 </div>
                 <Button variant="ghost" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
@@ -45,17 +44,13 @@ export function AdminPanelDialog({ open, onOpenChange }: AdminPanelDialogProps) 
             </div>
         </DialogHeader>
         <div className="flex-grow overflow-hidden px-6 pb-6">
-            <Tabs defaultValue="manage-orders" className="h-full flex flex-col">
-                <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="manage-orders">Manage Orders</TabsTrigger>
+            <Tabs defaultValue="manage-products" className="h-full flex flex-col">
+                <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="manage-products">Manage Products</TabsTrigger>
                     <TabsTrigger value="add-product">Add Product</TabsTrigger>
                 </TabsList>
                 <div className="flex-grow overflow-hidden mt-6">
                     <ScrollArea className="h-full pr-4">
-                        <TabsContent value="manage-orders" className="mt-0">
-                            <OrderList />
-                        </TabsContent>
                         <TabsContent value="manage-products" className="mt-0">
                             <ProductList />
                         </TabsContent>
