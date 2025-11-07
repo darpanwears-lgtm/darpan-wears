@@ -18,14 +18,18 @@ import { useState } from 'react';
 import { LoginDialog } from './login-dialog';
 import { generateColorFromString } from '@/lib/utils';
 import { AdminLoginDialog } from './admin-login-dialog';
+import { useAuth } from '@/lib/auth-context';
+import { AdminPanelDialog } from './admin-panel-dialog';
 
 
 export function Header() {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { isAdmin } = useAuth();
   const [isAccountDialogOpen, setIsAccountDialogOpen] = useState(false);
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isAdminLoginDialogOpen, setIsAdminLoginDialogOpen] = useState(false);
+  const [isAdminPanelOpen, setIsAdminPanelOpen] = useState(false);
 
   const userProfileRef = useMemoFirebase(
     () => (user && firestore ? doc(firestore, 'users', user.uid) : null),
@@ -47,6 +51,14 @@ export function Header() {
       setIsAccountDialogOpen(true);
     } else {
       setIsLoginDialogOpen(true);
+    }
+  };
+
+  const handleAdminClick = () => {
+    if (isAdmin) {
+      setIsAdminPanelOpen(true);
+    } else {
+      setIsAdminLoginDialogOpen(true);
     }
   };
 
@@ -102,7 +114,7 @@ export function Header() {
                 )}
                 <span className="sr-only">Account</span>
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setIsAdminLoginDialogOpen(true)}>
+              <Button variant="ghost" size="sm" onClick={handleAdminClick}>
                 <KeyRound className="h-5 w-5" />
                 <span className="sr-only">Admin</span>
               </Button>
@@ -112,7 +124,19 @@ export function Header() {
       </header>
       {user && <AccountDialog open={isAccountDialogOpen} onOpenChange={setIsAccountDialogOpen} />}
       {!user && <LoginDialog open={isLoginDialogOpen} onOpenChange={setIsLoginDialogOpen} />}
-      <AdminLoginDialog open={isAdminLoginDialogOpen} onOpenChange={setIsAdminLoginDialogOpen} />
+      
+      {isAdmin ? (
+        <AdminPanelDialog open={isAdminPanelOpen} onOpenChange={setIsAdminPanelOpen} />
+      ) : (
+        <AdminLoginDialog 
+          open={isAdminLoginDialogOpen} 
+          onOpenChange={setIsAdminLoginDialogOpen} 
+          onLoginSuccess={() => {
+            setIsAdminLoginDialogOpen(false);
+            setIsAdminPanelOpen(true);
+          }} 
+        />
+      )}
     </>
   );
 }

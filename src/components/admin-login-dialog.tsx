@@ -28,10 +28,10 @@ const formSchema = z.object({
 interface AdminLoginDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onLoginSuccess: () => void;
 }
 
-export function AdminLoginDialog({ open, onOpenChange }: AdminLoginDialogProps) {
-  const router = useRouter();
+export function AdminLoginDialog({ open, onOpenChange, onLoginSuccess }: AdminLoginDialogProps) {
   const { login, isAdmin, isAuthLoading } = useAuth();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,17 +42,17 @@ export function AdminLoginDialog({ open, onOpenChange }: AdminLoginDialogProps) 
   });
   
   useEffect(() => {
-    // If the user is an admin and this dialog is open, close it and navigate to the admin page.
     if (isAdmin && open) {
-        onOpenChange(false);
-        router.push('/admin');
+        onLoginSuccess();
     }
-  }, [isAdmin, open, onOpenChange, router]);
+  }, [isAdmin, open, onLoginSuccess]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     const success = await login(values.password);
-    if (!success) {
+    if (success) {
+        onLoginSuccess();
+    } else {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
@@ -60,13 +60,11 @@ export function AdminLoginDialog({ open, onOpenChange }: AdminLoginDialogProps) 
       });
        form.reset();
     }
-    // On success, the effect hook will handle closing the dialog and redirecting.
     setIsSubmitting(false);
   }
 
-  // Handle programmatic closing of the dialog
   const handleOpenChange = (isOpen: boolean) => {
-    if (isSubmitting) return; // Prevent closing while submitting
+    if (isSubmitting) return; 
     onOpenChange(isOpen);
     if (!isOpen) {
         form.reset();
@@ -103,4 +101,3 @@ export function AdminLoginDialog({ open, onOpenChange }: AdminLoginDialogProps) 
     </Dialog>
   );
 }
-
