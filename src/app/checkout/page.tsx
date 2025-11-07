@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import Image from 'next/image';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useDoc, useUser } from '@/firebase';
 import { doc, addDoc, collection } from 'firebase/firestore';
 import { useFirestore, useMemoFirebase } from '@/firebase/provider';
@@ -20,6 +20,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter, FirestorePermissionError } from '@/firebase';
 import { Loader2 } from 'lucide-react';
+import type { UserProfile } from '@/lib/types';
+
 
 const formSchema = z.object({
   name: z.string().min(2, { message: 'Name must be at least 2 characters.' }),
@@ -40,6 +42,12 @@ function CheckoutForm() {
   
   const firestore = useFirestore();
   const { user } = useUser();
+  
+  const userProfileRef = useMemoFirebase(
+    () => (firestore && user ? doc(firestore, 'users', user.uid) : null),
+    [firestore, user]
+  );
+  const { data: userProfile } = useDoc<UserProfile>(userProfileRef);
 
   const productRef = useMemoFirebase(
     () => (firestore && productId ? doc(firestore, 'products', productId) : null),
@@ -49,8 +57,19 @@ function CheckoutForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { name: '', address: '', phone: '' },
+    defaultValues: { name: '', address: '', phone: '', paymentMethod: 'COD' },
   });
+
+  useEffect(() => {
+    if (userProfile) {
+        form.reset({
+            name: userProfile.name || '',
+            address: userProfile.address || '',
+            phone: userProfile.phone || '',
+            paymentMethod: 'COD',
+        })
+    }
+  }, [userProfile, form]);
   
   if (isLoading) {
     return (
@@ -107,7 +126,6 @@ function CheckoutForm() {
       return;
     }
     
-    // Save order to Firestore
     const orderData = {
       userId: user.uid,
       items: [{
@@ -119,7 +137,7 @@ function CheckoutForm() {
         size: size || 'N/A'
       }],
       totalAmount: total,
-      status: 'Processing',
+      status: 'Processing' as const,
       orderDate: Date.now(),
       shippingAddress: {
         name: values.name,
@@ -132,7 +150,6 @@ function CheckoutForm() {
         const ordersCollection = collection(firestore, 'users', user.uid, 'orders');
         const docRef = await addDoc(ordersCollection, orderData);
 
-        // Prepare Instagram message
         const itemsSummary = `- ${product.name} (Size: ${size || 'N/A'}) - $${total.toFixed(2)}`;
         const message = `
 New Order Received!
@@ -150,22 +167,26 @@ Order Item:
 ${itemsSummary}
 
 Total Amount: $${total.toFixed(2)}
-        `.trim();
+        `.trim().replace(/^\s+/gm, '');
 
-        // Copy message to clipboard
-        await navigator.clipboard.writeText(message);
-        
-        toast({
-          title: "Order Details Copied!",
-          description: "Redirecting to Instagram. Please paste the details in a DM.",
-        });
 
-        // Update purchase history in localStorage
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(message);
+            toast({
+              title: "Order Details Copied!",
+              description: "Redirecting to Instagram. Please paste the details in a DM.",
+            });
+        } else {
+            toast({
+              title: "Order Placed!",
+              description: "Could not copy details automatically. Please check your order history and contact us on Instagram.",
+            });
+        }
+
         const purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory') || '[]');
         const updatedHistory = [...new Set([product.id, ...purchaseHistory])];
         localStorage.setItem('purchaseHistory', JSON.stringify(updatedHistory));
         
-        // Redirect to success page, which then redirects to Instagram
         const instagramUrl = 'https://www.instagram.com/darpan_wear/?__pwa=1';
         router.push(`/order/${docRef.id}?instagramUrl=${encodeURIComponent(instagramUrl)}`);
 
