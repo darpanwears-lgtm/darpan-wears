@@ -1,4 +1,3 @@
-
 /**
  * @fileoverview Firestore Security Rules for Darpan Wears Mobile Shop.
  *
@@ -68,9 +67,12 @@ service cloud.firestore {
      * @description Rules for the /users/{userId} collection and its subcollections.
      */
     match /users/{userId} {
-      // Users can only read and write their own profile document.
-      allow read, write: if isOwner(userId);
-      allow list: if false; // Prevent listing all users
+      // A user can create their own profile document.
+      allow create: if isOwner(userId);
+      // A user can read or update their own profile document.
+      allow read, update: if isOwner(userId);
+      // No one can list all users or delete a user profile directly.
+      allow list, delete: if false;
 
       /**
        * @description Rules for the orders subcollection. This controls direct access within a user's path.
