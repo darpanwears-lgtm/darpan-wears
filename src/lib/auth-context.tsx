@@ -61,30 +61,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
         await signInWithEmailAndPassword(auth, ADMIN_EMAIL, password);
     } catch (error: any) {
-        if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+        if (error.code === 'auth/user-not-found') {
+            // If user doesn't exist, create them. This is for first-time setup.
             try {
-                // User doesn't exist or password was wrong, try creating the user.
-                // This handles the first-time login or a password reset scenario.
                 const userCredential = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, password);
                 const newUser = userCredential.user;
                 if (newUser && firestore) {
                     const adminRoleRef = doc(firestore, 'roles_admin', newUser.uid);
                     await setDoc(adminRoleRef, { isAdmin: true });
                 }
-            } catch (creationError: any) {
-                 if (creationError.code !== 'auth/email-already-in-use') {
-                    console.error("Failed to create admin user:", creationError);
-                    setIsAuthLoading(false);
-                    return false;
-                }
-                // If it already exists, it means the password on Firebase is different.
-                // Since we couldn't sign in, the provided password is wrong.
-                // This path is now effectively an "incorrect password" path after attempting creation.
+            } catch (creationError) {
+                console.error("Failed to create admin user:", creationError);
                 setIsAuthLoading(false);
                 return false;
             }
         } else {
-            console.error("Admin login failed with unexpected error:", error);
+            // Handle other errors (like wrong password) without trying to create a user.
+            console.error("Admin login failed:", error);
             setIsAuthLoading(false);
             return false;
         }
