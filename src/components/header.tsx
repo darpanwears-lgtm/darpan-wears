@@ -2,7 +2,7 @@
 'use client';
 
 import Link from 'next/link';
-import { User, Instagram, KeyRound, ShoppingBag } from 'lucide-react';
+import { User, Instagram, KeyRound } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FacebookIcon } from './icons/facebook';
 import { WhatsAppIcon } from './icons/whatsapp';
@@ -115,15 +115,6 @@ export function Header() {
                 <span className="sr-only">Account</span>
               </Button>
               
-              {isAdmin && (
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/orders">
-                    <ShoppingBag className="h-5 w-5" />
-                    <span className="sr-only">Orders</span>
-                  </Link>
-                </Button>
-              )}
-
               <Button variant="ghost" size="sm" onClick={handleAdminClick}>
                 <KeyRound className="h-5 w-5" />
                 <span className="sr-only">Admin</span>
@@ -148,5 +139,3 @@ export function Header() {
     </>
   );
 }
-
-    

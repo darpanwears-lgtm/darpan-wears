@@ -5,7 +5,7 @@
  * Core Philosophy:
  * This ruleset implements a role-based access control system where all users can read product information,
  * but only users with a designated admin role can create, update, or delete products.
- * Customer can manage their own profile data and order history. Admins can manage all orders.
+ * Customer can manage their own profile data and order history.
  *
  * Data Structure:
  * - /products/{productId}: Stores publicly readable product information.
@@ -17,7 +17,6 @@
  * - Public read access to the /products collection to enable product browsing.
  * - Administrative privileges are determined by the presence of a document in the `/roles_admin/{userId}` collection.
  * - Customer can only access their own data in `/users/{userId}` and its subcollections.
- * - Admins have read and update access to all orders across all users via a collection group query.
  *
  */
 rules_version = '2';
@@ -47,15 +46,6 @@ service cloud.firestore {
      */
     function isOwner(userId) {
       return isSignedIn() && request.auth.uid == userId;
-    }
-
-    /**
-     * @description Collection group rule for 'orders'. This allows admins to query across all users' orders.
-     * This rule must be at the top level to function correctly for collection group queries.
-     */
-    match /{path=**}/orders/{orderId} {
-      // Admins can perform list (collection group query) and get operations on any order.
-      allow list, get: if isSignedIn() && isAdmin();
     }
 
    /**
@@ -101,5 +91,3 @@ service cloud.firestore {
     }
   }
 }
-
-    
